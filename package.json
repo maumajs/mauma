@@ -1,0 +1,35 @@
+{
+  "name": "@lamia/lamia",
+  "author": "Asier Illarramendi <asier@illarra.com> (http://doup.illarra.com)",
+  "version": "0.0.1",
+  "description": "Lamia SSG",
+  "main": "dist/index.js",
+  "license": "ISC",
+  "keywords": [
+    "static site generator",
+    "ssg",
+    "typescript",
+    "nunjuck",
+    "sass"
+  ],
+  "bin": {
+    "lamia": "dist/bin/cli.js"
+  },
+  "scripts": {
+    "prebuild": "rimraf ./dist",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "globby": "^11.0.4",
+    "nunjucks": "^3.2.3",
+    "sass": "^1.35.1",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.3.4"
+  },
+  "devDependencies": {
+    "@types/node": "^15.12.5",
+    "@types/nunjucks": "^3.1.4",
+    "prettier": "^2.3.2",
+    "rimraf": "^3.0.2"
+  }
+}
