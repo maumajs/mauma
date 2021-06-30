@@ -4,7 +4,7 @@ import { extname, join } from 'path';
 import { constants } from 'fs';
 import { access } from 'fs/promises';
 import nunjucks from 'nunjucks';
-import { Config, i18nStrategy } from '../misc/types';
+import { Config, i18nStrategy, IPage } from '../misc/types';
 
 // Register on the fly TS => JS converter
 require('@swc-node/register');
@@ -17,11 +17,11 @@ console.log(JSON.stringify({
   config,
 }, null, 2));
 
-
-const templatesPath = join(process.cwd(), 'src/templates');
+const viewsPath = join(process.cwd(), 'src/views');
 const pagesPath = join(process.cwd(), 'src/pages');
+const njksEnv = nunjucks.configure([pagesPath, viewsPath], { autoescape: true });
 
-nunjucks.configure([pagesPath, templatesPath], { autoescape: true });
+njksEnv.addGlobal('ctx', { config });
 
 (async () => {
   const fullPaths = await globby([join(pagesPath, '/**/*.ts')]);
@@ -31,7 +31,7 @@ nunjucks.configure([pagesPath, templatesPath], { autoescape: true });
     const urlTemplate = fullPath.replace(pagesPath, '').replace('index.ts', '').replace(extension, '');
     const nunjucksPath = fullPath.replace('.ts', '.njk');
     const pageClass = require(fullPath).default;
-    const instance = new pageClass();
+    const instance: IPage = new pageClass();
     let routes = await instance.getRoutes();
 
     console.log(fullPath)
@@ -66,9 +66,9 @@ nunjucks.configure([pagesPath, templatesPath], { autoescape: true });
       });
 
       if (Object.getPrototypeOf(instance).hasOwnProperty('render')) {
-        console.log('  ', url, instance.render(await instance.getData(route)));
+        console.log('  ', url, await instance.render(await instance.getData(route)));
       } else if (await access(nunjucksPath, constants.R_OK).then(() => true)) {
-        console.log('  ', url, nunjucks.render(nunjucksPath, await instance.getData(route)));
+        console.log('  ', url, njksEnv.render(nunjucksPath, await instance.getData(route)));
       } else {
         console.log('  ', url, '> No way to render');
       }
