@@ -2,7 +2,7 @@
   "name": "@lamia/lamia",
   "author": "Asier Illarramendi <asier@illarra.com> (http://doup.illarra.com)",
   "version": "0.0.1",
-  "description": "Lamia SSG",
+  "description": "Lamia Static Site Generator",
   "main": "dist/index.js",
   "license": "ISC",
   "keywords": [
