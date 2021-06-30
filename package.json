@@ -1,8 +1,8 @@
 {
-  "name": "@lamia/lamia",
+  "name": "@mauma/mauma",
   "author": "Asier Illarramendi <asier@illarra.com> (http://doup.illarra.com)",
   "version": "0.0.1",
-  "description": "Lamia Static Site Generator",
+  "description": "Mauma Static Site Generator",
   "main": "dist/index.js",
   "license": "ISC",
   "keywords": [
@@ -13,7 +13,7 @@
     "sass"
   ],
   "bin": {
-    "lamia": "dist/bin/cli.js"
+    "mauma": "dist/bin/cli.js"
   },
   "scripts": {
     "prebuild": "rimraf ./dist",
