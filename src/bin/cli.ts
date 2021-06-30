@@ -6,7 +6,8 @@ import { access } from 'fs/promises';
 import nunjucks from 'nunjucks';
 import { Config, i18nStrategy } from '../misc/types';
 
-require('ts-node').register({ /* options */ })
+// Register on the fly TS => JS converter
+require('@swc-node/register');
 
 const config: Config = require(`${process.cwd()}/src/config.ts`).default;
 
