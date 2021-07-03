@@ -1,7 +1,36 @@
 import { join } from 'path';
-import { getRouteName, getRouteRegexStr, getRouteEntries, mapRouteFileToRouteEntry, validateRouteEntries } from '../src/routes';
+import {
+  getRouteName,
+  getRouteRegexStr,
+  getRouteEntries,
+  mapRouteFileToRouteEntry,
+  validateRouteEntries,
+  getRouteURL
+} from '../src/routes';
+
+// interface GetRouteOutputTest {
+//   entry: RouteEntry;
+//   instance: RouteInstance;
+//   output: string;
+// }
 
 describe('Routes directory parsing', () => {
+  describe('getRouteURL', () => {
+    it('should transform a file name to an URL', () => {
+      const tests = [
+        { file: '/index.ts', url: '/' },
+        { file: '/us/about.ts', url: '/us/about' },
+        { file: '/blog/index.ts', url: '/blog' },
+        { file: '/blog/[month]/[slug].ts', url: '/blog/[month]/[slug]' },
+        { file: '/blog/[...all].ts', url: '/blog/[...all]' },
+      ];
+
+      tests.forEach(({ file, url }) => {
+        expect(getRouteURL(file)).toBe(url);
+      });
+    });
+  });
+
   describe('getRouteName', () => {
     it('should return a name given a file name', () => {
       expect(getRouteName('/index.ts')).toEqual('index');
@@ -11,6 +40,27 @@ describe('Routes directory parsing', () => {
       expect(getRouteName('/blog/[...all].ts')).toEqual('blog-all');
     });
   });
+
+  // describe('getRouteOutput', () => {
+  //   it('should return the relative output file name', () => {
+  //     const tests: GetRouteOutputTest[] = [
+  //       {
+  //         entry: mapRouteFileToRouteEntry('/index.ts'),
+  //         instance: { params: {} },
+  //         output: '/index.html',
+  //       },
+  //       {
+  //         entry: mapRouteFileToRouteEntry('/us/about.ts'),
+  //         instance: { params: {} },
+  //         output: '/us/about/index.html',
+  //       },
+  //     ];
+
+  //     tests.forEach(test => {
+  //       expect(getRouteOutput(test.entry, test.instance)).toBe(test.output);
+  //     });
+  //   });
+  // });
 
   describe('validateRouteEntries', () => {
     it(`should return an empty array if there aren't conflicts`, () => {
@@ -108,6 +158,7 @@ describe('Routes directory parsing', () => {
       const route = mapRouteFileToRouteEntry('/us/about.ts');
 
       expect(route.name).toBe('us-about');
+      expect(route.isCatchAll).toBe(false);
       expect(route.isDynamic).toBe(false);
     });
 
@@ -115,6 +166,7 @@ describe('Routes directory parsing', () => {
       const route = mapRouteFileToRouteEntry('/blog/[year]/[month]/[slug].ts');
 
       expect(route.name).toBe('blog-year-month-slug');
+      expect(route.isCatchAll).toBe(false);
       expect(route.isDynamic).toBe(true);
     });
 
@@ -122,6 +174,7 @@ describe('Routes directory parsing', () => {
       const route = mapRouteFileToRouteEntry('/blog/[...all].ts');
 
       expect(route.name).toBe('blog-all');
+      expect(route.isCatchAll).toBe(true);
       expect(route.isDynamic).toBe(true);
     });
   });

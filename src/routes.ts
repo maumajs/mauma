@@ -1,12 +1,28 @@
 import globby from 'globby';
 import { join } from 'path';
 import { stat } from 'fs/promises';
+import { RouteConfig } from 'route';
 
-interface RouteEntry {
+export type RouteParams = Record<string, string | string[]>;
+
+export interface RouteEntry {
   name: string;
   file: string;
   regex: RegExp;
+  isCatchAll: boolean;
   isDynamic: boolean;
+}
+
+export interface RouteInstance<Data = any> {
+  params: RouteParams;
+  locale?: string;
+  data?: Data;
+}
+
+export interface RouteRenderTask<Data = any> {
+  route: RouteEntry;
+  config: RouteConfig;
+  instance: RouteInstance<Data>;
 }
 
 export interface RouteIssue {
@@ -14,7 +30,7 @@ export interface RouteIssue {
   matches: string[];
 }
 
-export function getRouteID(file: string): string {
+export function getRouteURL(file: string): string {
   const id = file
     .replace(/index\.ts$/, '') // Remove `index.ts`
     .replace(/\.ts$/, '')      // Remove `.ts`
@@ -38,7 +54,8 @@ export function getRouteName(file: string): string {
 
 export function getRouteRegexStr(file: string): string {
   // Replace [param] or [...param] with named group regex
-  const routeID = getRouteID(file).replace(/(\[.*?\])/g, (match) => {
+  const internalURL = getRouteURL(file);
+  const regex = internalURL.replace(/(\[.*?\])/g, (match) => {
     const groupName = match.replace(/[\[\]\.]/g, '');
 
     if (!match.includes('...')) {
@@ -50,15 +67,16 @@ export function getRouteRegexStr(file: string): string {
     }
   });
 
-  return `^${routeID}$`;
+  return `^${regex}$`;
 }
 
 export function mapRouteFileToRouteEntry(file: string): RouteEntry {
   const regex = new RegExp(getRouteRegexStr(file));
   const name = getRouteName(file);
+  const isCatchAll = file.includes('[...');
   const isDynamic = file.includes('[');
 
-  return { name, file, regex, isDynamic };
+  return { name, file, regex, isCatchAll, isDynamic };
 }
 
 export async function getRouteEntries(dir: string): Promise<RouteEntry[]> {
@@ -86,7 +104,7 @@ export function validateRouteEntries(routes: RouteEntry[]): RouteIssue[] {
 
   files.forEach(file => {
     routes.forEach(route => {
-      const url = getRouteID(file);
+      const url = getRouteURL(file);
 
       if (route.regex.test(url)) {
         matches.set(file, (matches.get(file) ?? []).concat(route.file));

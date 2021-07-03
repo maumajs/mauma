@@ -1,79 +1,99 @@
 #!/usr/bin/env node
-import globby from 'globby';
-import { extname, join } from 'path';
-import { constants } from 'fs';
-import { access } from 'fs/promises';
+import { dirname, join } from 'path';
 import nunjucks from 'nunjucks';
-import { Config, i18nStrategy, IPage } from '../misc/types';
+import { access, mkdir, writeFile } from 'fs/promises';
+import { constants } from 'fs';
+import del from 'del';
+
+import { MaumaConfig } from '../public/types';
+import { getRouteEntries, RouteRenderTask, validateRouteEntries } from '../routes';
+import { GetOutputFileFn, RenderContext, RouteBuilder } from '../route';
+import { getOutputFile } from '../render';
 
 // Register on the fly TS => JS converter
 require('@swc-node/register');
 
-const config: Config = require(`${process.cwd()}/src/config.ts`).default;
+const config: MaumaConfig = require(`${process.cwd()}/src/config.ts`).default;
+const viewsDir = join(process.cwd(), 'src/views');
+const routesDir = join(process.cwd(), 'src/routes');
+const buildDir = join(process.cwd(), 'build');
+const njksEnv = nunjucks.configure([routesDir, viewsDir], { autoescape: true });
 
-console.log(JSON.stringify({
-  cwd: process.cwd(),
-  dirname: __dirname,
-  config,
-}, null, 2));
-
-const viewsPath = join(process.cwd(), 'src/views');
-const pagesPath = join(process.cwd(), 'src/pages');
-const njksEnv = nunjucks.configure([pagesPath, viewsPath], { autoescape: true });
-
-njksEnv.addGlobal('ctx', { config });
+njksEnv.addGlobal('config', config);
 
 (async () => {
-  const fullPaths = await globby([join(pagesPath, '/**/*.ts')]);
+  // Remove build directory
+  await del(buildDir);
 
-  for (const fullPath of fullPaths) {
-    const extension = extname(fullPath);
-    const urlTemplate = fullPath.replace(pagesPath, '').replace('index.ts', '').replace(extension, '');
-    const nunjucksPath = fullPath.replace('.ts', '.njk');
-    const pageClass = require(fullPath).default;
-    const instance: IPage = new pageClass();
-    let routes = await instance.getRoutes();
+  const routes = await getRouteEntries(routesDir);
+  const routeIssues = validateRouteEntries(routes);
 
-    console.log(fullPath)
+  console.log(routes);
 
-    if (routes.length === 0) {
-      routes = config.i18n.locales.map(locale => ({ params: {}, locale }));
-    }
+  if (routeIssues.length > 0) {
+    // TODO: Improve reporting
+    console.log(routeIssues);
+    throw new Error('Route issues!!');
+  }
 
-    for (const route of routes) {
-      const permalinks = instance.getPermalink();
-      let url: string;
+  for (const route of routes) {
+    const routeFullPath = join(routesDir, route.file);
+    const routeBuilder: RouteBuilder = require(routeFullPath).default;
+    const routeConfig = routeBuilder['getRouteConfig']();
+    const renderTasks: RouteRenderTask[] = [];
 
-      if (route.locale in permalinks) {
-        url = `${permalinks[route.locale]}`;
+    if (routeConfig.getRouteInstances) {
+      const routeInstances = await routeConfig.getRouteInstances();
+      renderTasks.push(...routeInstances.map(instance => ({ route, config: routeConfig, instance })));
+    } else {
+      if (route.isDynamic) {
+        throw new Error(`${route.name} is dynamic but it's missing "getRouteInstances()"`);
       } else {
-        url = `${urlTemplate}`;
-      }
-
-      switch (config.i18n.strategy) {
-        case i18nStrategy.Prefix:
-          url = `/${route.locale}${url}`;
-          break;
-
-        case i18nStrategy.PrefixExceptDefault:
-          if (route.locale !== config.i18n.defaultLocale) {
-            url = `/${route.locale}${url}`;
-          }
-      }
-
-      Object.entries(route.params).forEach(([param, value]) => {
-        url = url.replace(`[${param}]`, value as string);
-      });
-
-      if (Object.getPrototypeOf(instance).hasOwnProperty('render')) {
-        console.log('  ', url, await instance.render(await instance.getData(route)));
-      } else if (await access(nunjucksPath, constants.R_OK).then(() => true)) {
-        console.log('  ', url, njksEnv.render(nunjucksPath, await instance.getData(route)));
-      } else {
-        console.log('  ', url, '> No way to render');
+        if (routeConfig.i18nEnabled) {
+          config.i18n.locales.forEach(({ code }) => {
+            renderTasks.push({ route, config: routeConfig, instance: { params: {}, locale: code } });
+          });
+        } else {
+          renderTasks.push({ route, config: routeConfig, instance: { params: {}, locale: undefined } });
+        }
       }
     }
 
-    console.log('');
+    for (const task of renderTasks) {
+      const getOutputFileFn: GetOutputFileFn = task.config.getOutputFile ?? getOutputFile;
+      const outputFile = await getOutputFileFn({ config, task });
+      const ctx: RenderContext = {
+        config: config,
+        data: undefined,
+        params: task.instance.params,
+        locale: task.instance.locale,
+      };
+
+      let content: string;
+      console.log(outputFile);
+
+      if (task.config.getData) {
+        ctx.data = await task.config.getData(task.instance.params);
+      }
+
+      if (task.config.render) {
+        content = await task.config.render(ctx);
+      } else {
+        const nunjucksPath = join(routesDir, task.route.file.replace('.ts', '.njk'));
+
+        if (await access(nunjucksPath, constants.R_OK).then(() => true)) {
+          content = njksEnv.render(nunjucksPath, ctx);
+        } else {
+          throw new Error(`Nunjucks template not found: ${nunjucksPath}`)
+        }
+      }
+
+      console.log(content.split('\n').map(line => `    ${line}`).join('\n') + '\n');
+
+      // Write to FS
+      const outputPath = join(buildDir, outputFile);
+      await mkdir(dirname(outputPath), { recursive: true });
+      writeFile(outputPath, content);
+    }
   }
 })();

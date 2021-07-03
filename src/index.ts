@@ -1,3 +1,2 @@
-export * from './misc/types';
-
-console.log('Aupa');
+export * from './public/types';
+export { MaumaRoute } from './route';
