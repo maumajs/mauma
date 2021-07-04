@@ -1,47 +1,49 @@
 import { MaumaConfig } from '../public/types';
-import { RouteInstance, RouteParams, RouteRenderTask } from './utils';
+import { Route, RouteInstance, RouteParams } from './utils';
 
 export interface RenderContext<Data = any> {
   config: MaumaConfig;
+  route: Route;
   data?: Data;
   params: RouteParams;
   locale?: string;
 }
 
-export type GetDataFn<Data = any> = (params: RouteParams) => Promise<Data>;
-export type GetRouteInstancesFn<Data = any> = () => Promise<RouteInstance<Data>[]>;
-export type GetI18NPermalinksFn = () => Promise<Record<string, string>>;
+export interface GetRouteInstancesFnParams {
+  config: MaumaConfig;
+  route: Route;
+}
+
+export type GetDataFn<Data = any> = (instance: RouteInstance<Data>) => Promise<Data>;
+export type GetRouteInstancesFn<Data = any> = (params: GetRouteInstancesFnParams) => Promise<RouteInstance<Data>[]>;
 export type GetI18NMessagesFn = () => Promise<Record<string, string>>;
-export type GetOutputFileFn = (params: { config: MaumaConfig, task: RouteRenderTask }) => Promise<string>;
+export type GetPermalinkFn = () => Promise<string | Record<string, string>>;
 export type RenderFn<Data = any> = (ctx: RenderContext<Data>) => Promise<string>;
 
 export interface RouteConfig<Data = any> {
   i18nEnabled: boolean;
   getData?: GetDataFn<Data>;
-  getRouteInstances?: GetRouteInstancesFn<Data>;
+  getInstances?: GetRouteInstancesFn<Data>;
   getI18NMessages?: GetI18NMessagesFn;
-  getI18NPermalinks?: GetI18NPermalinksFn;
-  getOutputFile?: GetOutputFileFn;
+  getPermalink?: GetPermalinkFn;
   render?: RenderFn<Data>;
 }
 
 export class RouteBuilder<Data = any> {
   private i18nEnabled = true;
   private getDataFn?: GetDataFn<Data>;
-  private getRouteInstancesFn?: GetRouteInstancesFn<Data>;
+  private getInstancesFn?: GetRouteInstancesFn<Data>;
   private getI18NMessagesFn?: GetI18NMessagesFn;
-  private getI18NPermalinksFn?: GetI18NPermalinksFn;
-  private getOutputFileFn?: GetOutputFileFn;
+  private getPermalinkFn?: GetPermalinkFn;
   private renderFn?: RenderFn<Data>;
 
   private getRouteConfig(): RouteConfig<Data> {
     return {
       i18nEnabled: this.i18nEnabled,
       getData: this.getDataFn,
-      getRouteInstances: this.getRouteInstancesFn,
+      getInstances: this.getInstancesFn,
       getI18NMessages: this.getI18NMessagesFn,
-      getI18NPermalinks: this.getI18NPermalinksFn,
-      getOutputFile: this.getOutputFileFn,
+      getPermalink: this.getPermalinkFn,
       render: this.renderFn,
     };
   }
@@ -56,8 +58,8 @@ export class RouteBuilder<Data = any> {
     return this;
   }
 
-  public getRouteInstances(fn: GetRouteInstancesFn<Data>): RouteBuilder<Data> {
-    this.getRouteInstancesFn = fn;
+  public getInstances(fn: GetRouteInstancesFn<Data>): RouteBuilder<Data> {
+    this.getInstancesFn = fn;
     return this;
   }
 
@@ -66,13 +68,8 @@ export class RouteBuilder<Data = any> {
     return this;
   }
 
-  public getI18NPermalinks(fn: GetI18NPermalinksFn): RouteBuilder<Data> {
-    this.getI18NPermalinksFn = fn;
-    return this;
-  }
-
-  public getOutputFile(fn: GetOutputFileFn): RouteBuilder<Data> {
-    this.getOutputFileFn = fn;
+  public getPermalink(fn: GetPermalinkFn): RouteBuilder<Data> {
+    this.getPermalinkFn = fn;
     return this;
   }
 

@@ -2,19 +2,42 @@ import { join } from 'path';
 import {
   getRouteName,
   getInternalURLRegexStr,
-  getRouteEntries,
-  mapRouteFileToRouteEntry,
+  mapFileToRouteBase,
   validateRouteEntries,
-  getRouteURL
+  getRouteURL,
+  getRouteFiles,
+  mapPermalinkToOutput,
+  appendIndexHTML,
+  addTrailingSlash,
+  addTrailingSlashToPermalink
 } from '../../src/route/utils';
 
-// interface GetRouteOutputTest {
-//   entry: RouteEntry;
-//   instance: RouteInstance;
-//   output: string;
-// }
-
 describe('Route Utilities', () => {
+  describe('appendIndexHTML', () => {
+    it(`should append index.html when necessary`, () => {
+      expect(appendIndexHTML('/')).toEqual('/index.html');
+      expect(appendIndexHTML('/index.html')).toEqual('/index.html');
+      expect(appendIndexHTML('/us')).toEqual('/us/index.html');
+      expect(appendIndexHTML('/us/about')).toEqual('/us/about/index.html');
+      expect(appendIndexHTML('/us/about/')).toEqual('/us/about/index.html');
+      expect(appendIndexHTML('/us/about.html')).toEqual('/us/about.html');
+      expect(appendIndexHTML('/us/about.html/')).toEqual('/us/about.html/index.html');
+      expect(appendIndexHTML('/sitemap.xml')).toEqual('/sitemap.xml');
+    });
+  });
+
+  describe('addTrailingSlash', () => {
+    it(`should append index.html when necessary`, () => {
+      expect(addTrailingSlash('/')).toEqual('/');
+      expect(addTrailingSlash('/index.html')).toEqual('/index.html');
+      expect(addTrailingSlash('/us')).toEqual('/us/');
+      expect(addTrailingSlash('/us/about')).toEqual('/us/about/');
+      expect(addTrailingSlash('/us/about/')).toEqual('/us/about/');
+      expect(addTrailingSlash('/us/about.html')).toEqual('/us/about.html');
+      expect(addTrailingSlash('/sitemap.xml')).toEqual('/sitemap.xml');
+    });
+  });
+
   describe('getRouteURL', () => {
     it('should transform a file name to an URL', () => {
       const tests = [
@@ -41,27 +64,6 @@ describe('Route Utilities', () => {
     });
   });
 
-  // describe('getRouteOutput', () => {
-  //   it('should return the relative output file name', () => {
-  //     const tests: GetRouteOutputTest[] = [
-  //       {
-  //         entry: mapRouteFileToRouteEntry('/index.ts'),
-  //         instance: { params: {} },
-  //         output: '/index.html',
-  //       },
-  //       {
-  //         entry: mapRouteFileToRouteEntry('/us/about.ts'),
-  //         instance: { params: {} },
-  //         output: '/us/about/index.html',
-  //       },
-  //     ];
-
-  //     tests.forEach(test => {
-  //       expect(getRouteOutput(test.entry, test.instance)).toBe(test.output);
-  //     });
-  //   });
-  // });
-
   describe('validateRouteEntries', () => {
     it(`should return an empty array if there aren't conflicts`, () => {
       const routes = [
@@ -69,7 +71,7 @@ describe('Route Utilities', () => {
         '/us/about.ts',
         '/products/[...all].ts',
         '/blog/[year]/[month]/[slug].ts',
-      ].map(file => mapRouteFileToRouteEntry(file));
+      ].map(file => mapFileToRouteBase(file));
 
       const issues = validateRouteEntries(routes);
       expect(issues).toEqual([]);
@@ -82,25 +84,25 @@ describe('Route Utilities', () => {
         '/blog/[...params].ts',
         '/blog/[year]/[slug].ts',
         '/blog/[year]/[month]/[slug].ts',
-      ].map(file => mapRouteFileToRouteEntry(file));
+      ].map(file => mapFileToRouteBase(file));
 
       const issues = validateRouteEntries(routes);
       expect(issues).toEqual([
         {
-          file: '/blog/[...all].ts',
-          matches: ['/blog/[...all].ts', '/blog/[...params].ts'],
+          name: 'blog-all',
+          matches: ['blog-all', 'blog-params'],
         },
         {
-          file: '/blog/[...params].ts',
-          matches: ['/blog/[...all].ts', '/blog/[...params].ts'],
+          name: 'blog-params',
+          matches: ['blog-all', 'blog-params'],
         },
         {
-          file: '/blog/[year]/[slug].ts',
-          matches: ['/blog/[...all].ts', '/blog/[...params].ts', '/blog/[year]/[slug].ts'],
+          name: 'blog-year-slug',
+          matches: ['blog-all', 'blog-params', 'blog-year-slug'],
         },
         {
-          file: '/blog/[year]/[month]/[slug].ts',
-          matches: ['/blog/[...all].ts', '/blog/[...params].ts', '/blog/[year]/[month]/[slug].ts'],
+          name: 'blog-year-month-slug',
+          matches: ['blog-all', 'blog-params', 'blog-year-month-slug'],
         },
       ]);
     });
@@ -153,49 +155,92 @@ describe('Route Utilities', () => {
     });
   });
 
-  describe('mapRouteFileToRouteEntry', () => {
+  describe('mapFileToRouteBase', () => {
     it('should map simple routes', () => {
-      const route = mapRouteFileToRouteEntry('/us/about.ts');
-
+      const route = mapFileToRouteBase('/us/about.ts');
       expect(route.name).toBe('us-about');
+      expect(route.file).toBe('/us/about.ts');
+      expect(route.internalURL).toBe('/us/about');
       expect(route.isCatchAll).toBe(false);
       expect(route.isDynamic).toBe(false);
     });
 
     it('should map dynamic routes with separate params, e.g. [param]', () => {
-      const route = mapRouteFileToRouteEntry('/blog/[year]/[month]/[slug].ts');
-
+      const route = mapFileToRouteBase('/blog/[year]/[month]/[slug].ts');
       expect(route.name).toBe('blog-year-month-slug');
+      expect(route.file).toBe('/blog/[year]/[month]/[slug].ts');
+      expect(route.internalURL).toBe('/blog/[year]/[month]/[slug]');
       expect(route.isCatchAll).toBe(false);
       expect(route.isDynamic).toBe(true);
     });
 
     it('should map dynamic routes with spread params, e.g. [...param]', () => {
-      const route = mapRouteFileToRouteEntry('/blog/[...all].ts');
-
+      const route = mapFileToRouteBase('/blog/[...all].ts');
       expect(route.name).toBe('blog-all');
+      expect(route.file).toBe('/blog/[...all].ts');
+      expect(route.internalURL).toBe('/blog/[...all]');
       expect(route.isCatchAll).toBe(true);
       expect(route.isDynamic).toBe(true);
     });
   });
 
-  describe('getRouteEntries', () => {
+  describe('mapPermalinkToOutput', () => {
+    it('should map string permalinks', () => {
+      expect(mapPermalinkToOutput('/')).toEqual('/index.html');
+    });
+
+    it('should map record permalinks', () => {
+      expect(mapPermalinkToOutput({
+        es: '/',
+        ca: '/',
+      })).toEqual({
+        es: '/index.html',
+        ca: '/index.html',
+      });
+    });
+  });
+
+  describe('addTrailingSlashToPermalink', () => {
+    it('should map string permalinks', () => {
+      expect(addTrailingSlashToPermalink('/')).toEqual('/');
+    });
+
+    it('should map record permalinks', () => {
+      expect(addTrailingSlashToPermalink({
+        es: '/nosotros/quienes-somos',
+        ca: '/nosaltres/qui-som/',
+      })).toEqual({
+        es: '/nosotros/quienes-somos/',
+        ca: '/nosaltres/qui-som/',
+      });
+    });
+  });
+
+  describe.skip('getOutputFile', () => {
+    it(`should…`, () => {
+
+    });
+  });
+
+  describe('getRouteFiles', () => {
+    const fixturesDir = join(__dirname, '../fixtures/routes');
+
     it(`should fail if the directory doesn't exist`, () => {
-      expect(getRouteEntries('this-directory-doesnt-exist')).rejects.toThrow();
+      expect(getRouteFiles('this-directory-doesnt-exist')).rejects.toThrow();
     });
 
     it(`should handle trailing slashes`, async () => {
-      await getRouteEntries(join(__dirname, '../fixtures/routes') + '//');
+      await getRouteFiles(fixturesDir + '//');
     });
 
     it(`should return a list of routes`, async () => {
-      const routes = await getRouteEntries(join(__dirname, '../fixtures/routes'));
-      const names = routes.map(route => route.name);
+      const routes = await getRouteFiles(fixturesDir);
+      const fixture = (file: string) => join(fixturesDir, file);
 
-      expect(names).toEqual([
-        'index',
-        'us-about',
-        'blog-year-month-slug',
+      expect(routes).toEqual([
+        fixture('/index.ts'),
+        fixture('/us/about.ts'),
+        fixture('/blog/[year]/[month]/[slug].ts'),
       ]);
     });
   });
