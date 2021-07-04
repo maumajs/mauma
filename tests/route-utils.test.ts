@@ -6,7 +6,7 @@ import {
   mapRouteFileToRouteEntry,
   validateRouteEntries,
   getRouteURL
-} from '../src/routes';
+} from '../src/route-utils';
 
 // interface GetRouteOutputTest {
 //   entry: RouteEntry;
@@ -14,7 +14,7 @@ import {
 //   output: string;
 // }
 
-describe('Routes directory parsing', () => {
+describe('Route Utilities', () => {
   describe('getRouteURL', () => {
     it('should transform a file name to an URL', () => {
       const tests = [

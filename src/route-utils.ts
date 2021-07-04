@@ -1,7 +1,7 @@
 import globby from 'globby';
 import { join } from 'path';
 import { stat } from 'fs/promises';
-import { RouteConfig } from 'route';
+import { RouteConfig } from './route-builder';
 
 export type RouteParams = Record<string, string | string[]>;
 

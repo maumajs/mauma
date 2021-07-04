@@ -6,8 +6,8 @@ import { constants } from 'fs';
 import del from 'del';
 
 import { MaumaConfig } from '../public/types';
-import { getRouteEntries, RouteRenderTask, validateRouteEntries } from '../routes';
-import { GetOutputFileFn, RenderContext, RouteBuilder } from '../route';
+import { getRouteEntries, RouteRenderTask, validateRouteEntries } from '../route-utils';
+import { GetOutputFileFn, RenderContext, RouteBuilder } from '../route-builder';
 import { getOutputFile } from '../render';
 
 // Register on the fly TS => JS converter
@@ -70,7 +70,6 @@ njksEnv.addGlobal('config', config);
       };
 
       let content: string;
-      console.log(outputFile);
 
       if (task.config.getData) {
         ctx.data = await task.config.getData(task.instance.params);
@@ -87,8 +86,6 @@ njksEnv.addGlobal('config', config);
           throw new Error(`Nunjucks template not found: ${nunjucksPath}`)
         }
       }
-
-      console.log(content.split('\n').map(line => `    ${line}`).join('\n') + '\n');
 
       // Write to FS
       const outputPath = join(buildDir, outputFile);

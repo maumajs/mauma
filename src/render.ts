@@ -1,6 +1,6 @@
-import { getRouteURL } from './routes';
+import { getRouteURL } from './route-utils';
 import { MaumaI18NStrategy } from './public/types';
-import { GetOutputFileFn } from './route';
+import { GetOutputFileFn } from './route-builder';
 
 export function getURLFromOutput(file: string): string {
   return file.replace('index.html', '');
