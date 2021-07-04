@@ -6,8 +6,8 @@ import { constants } from 'fs';
 import del from 'del';
 
 import { MaumaConfig } from '../public/types';
-import { getRouteEntries, RouteRenderTask, validateRouteEntries } from '../route-utils';
-import { GetOutputFileFn, RenderContext, RouteBuilder } from '../route-builder';
+import { getRouteEntries, RouteRenderTask, validateRouteEntries } from '../route/utils';
+import { GetOutputFileFn, RenderContext, RouteBuilder } from '../route/route-builder';
 import { getOutputFile } from '../render';
 
 // Register on the fly TS => JS converter

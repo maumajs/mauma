@@ -1,5 +1,5 @@
-import { MaumaConfig } from './public/types';
-import { RouteInstance, RouteParams, RouteRenderTask } from './route-utils';
+import { MaumaConfig } from '../public/types';
+import { RouteInstance, RouteParams, RouteRenderTask } from './utils';
 
 export interface RenderContext<Data = any> {
   config: MaumaConfig;

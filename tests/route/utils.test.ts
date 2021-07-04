@@ -6,7 +6,7 @@ import {
   mapRouteFileToRouteEntry,
   validateRouteEntries,
   getRouteURL
-} from '../src/route-utils';
+} from '../../src/route/utils';
 
 // interface GetRouteOutputTest {
 //   entry: RouteEntry;
@@ -185,11 +185,11 @@ describe('Route Utilities', () => {
     });
 
     it(`should handle trailing slashes`, async () => {
-      await getRouteEntries(join(__dirname, './fixtures/routes') + '//');
+      await getRouteEntries(join(__dirname, '../fixtures/routes') + '//');
     });
 
     it(`should return a list of routes`, async () => {
-      const routes = await getRouteEntries(join(__dirname, 'fixtures/routes'));
+      const routes = await getRouteEntries(join(__dirname, '../fixtures/routes'));
       const names = routes.map(route => route.name);
 
       expect(names).toEqual([
