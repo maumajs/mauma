@@ -1,7 +1,7 @@
 import { join } from 'path';
 import {
   getRouteName,
-  getRouteRegexStr,
+  getInternalURLRegexStr,
   getRouteEntries,
   mapRouteFileToRouteEntry,
   validateRouteEntries,
@@ -106,35 +106,35 @@ describe('Route Utilities', () => {
     });
   });
 
-  describe('getRouteRegex', () => {
-    it('should return a working regex given a file name', () => {
+  describe('getInternalURLRegexStr', () => {
+    it('should return a working regex given an URL', () => {
       const tests = [
         {
-          file: '/index.ts',
+          internalURL: '/',
           regex: '^/$',
           testsPass: ['/'],
           testsFail: ['/us/about'],
         },
         {
-          file: '/us/about.ts',
+          internalURL: '/us/about',
           regex: '^/us/about$',
           testsPass: ['/us/about'],
           testsFail: ['/'],
         },
         {
-          file: '/blog/index.ts',
+          internalURL: '/blog',
           regex: '^/blog$',
           testsPass: ['/blog'],
           testsFail: ['/us/about'],
         },
         {
-          file: '/blog/[year]/[month]/[slug].ts',
+          internalURL: '/blog/[year]/[month]/[slug]',
           regex: '^/blog/(?<year>[^?/]+)/(?<month>[^?/]+)/(?<slug>[^?/]+)$',
           testsPass: ['/blog/2021/06/mauma-ssg'],
           testsFail: ['/', '/blog', '/us/about'],
         },
         {
-          file: '/blog/[...all].ts',
+          internalURL: '/blog/[...all]',
           regex: '^/blog/(?<all>[^?]+)$',
           testsPass: ['/blog/2021', '/blog/2021/06', '/blog/2021/06/mauma-ssg'],
           testsFail: ['/', '/blog', '/us/about'],
@@ -142,7 +142,7 @@ describe('Route Utilities', () => {
       ];
 
       tests.forEach(entry => {
-        const regexStr = getRouteRegexStr(entry.file);
+        const regexStr = getInternalURLRegexStr(entry.internalURL);
         const regex = new RegExp(regexStr);
 
         expect(regexStr).toEqual(entry.regex);

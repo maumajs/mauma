@@ -52,9 +52,8 @@ export function getRouteName(file: string): string {
     .join('-');
 }
 
-export function getRouteRegexStr(file: string): string {
+export function getInternalURLRegexStr(internalURL: string): string {
   // Replace [param] or [...param] with named group regex
-  const internalURL = getRouteURL(file);
   const regex = internalURL.replace(/(\[.*?\])/g, (match) => {
     const groupName = match.replace(/[\[\]\.]/g, '');
 
@@ -71,7 +70,7 @@ export function getRouteRegexStr(file: string): string {
 }
 
 export function mapRouteFileToRouteEntry(file: string): RouteEntry {
-  const regex = new RegExp(getRouteRegexStr(file));
+  const regex = new RegExp(getInternalURLRegexStr(getRouteURL(file)));
   const name = getRouteName(file);
   const isCatchAll = file.includes('[...');
   const isDynamic = file.includes('[');
