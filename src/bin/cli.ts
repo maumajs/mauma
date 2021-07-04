@@ -42,20 +42,20 @@ njksEnv.addGlobal('config', config);
     const routeConfig = routeBuilder['getRouteConfig']();
     const renderTasks: RouteRenderTask[] = [];
 
-    if (routeConfig.getRouteInstances) {
-      const routeInstances = await routeConfig.getRouteInstances();
-      renderTasks.push(...routeInstances.map(instance => ({ route, config: routeConfig, instance })));
-    } else {
-      if (route.isDynamic) {
-        throw new Error(`${route.name} is dynamic but it's missing "getRouteInstances()"`);
+    if (route.isDynamic) {
+      if (routeConfig.getRouteInstances) {
+        const routeInstances = await routeConfig.getRouteInstances();
+        renderTasks.push(...routeInstances.map(instance => ({ route, config: routeConfig, instance })));
       } else {
-        if (routeConfig.i18nEnabled) {
-          config.i18n.locales.forEach(({ code }) => {
-            renderTasks.push({ route, config: routeConfig, instance: { params: {}, locale: code } });
-          });
-        } else {
-          renderTasks.push({ route, config: routeConfig, instance: { params: {}, locale: undefined } });
-        }
+        throw new Error(`${route.name} is dynamic but it's missing "getRouteInstances()"`);
+      }
+    } else {
+      if (routeConfig.i18nEnabled) {
+        config.i18n.locales.forEach(({ code }) => {
+          renderTasks.push({ route, config: routeConfig, instance: { params: {}, locale: code } });
+        });
+      } else {
+        renderTasks.push({ route, config: routeConfig, instance: { params: {}, locale: undefined } });
       }
     }
 
