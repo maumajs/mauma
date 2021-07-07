@@ -29,7 +29,7 @@ interface NunjucksThis {
   // Remove build directory
   await del(maumaDir);
 
-  const routes: Route[] = await getRoutes(routesDir, nunjucksEnv);
+  const routes: Route[] = await getRoutes(routesDir, viewsDir, nunjucksEnv);
   const routeIssues = validateRouteEntries(routes);
 
   // Configure Nunjucks

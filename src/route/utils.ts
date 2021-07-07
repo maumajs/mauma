@@ -155,18 +155,18 @@ export async function getRouteFiles(dir: string): Promise<string[]> {
   return globby([join(dir, '/**/*.ts')]);
 }
 
-export async function getRoutes(dir: string, nunjucks: nunjucks.Environment): Promise<Route[]> {
-  const files = await getRouteFiles(dir);
+export async function getRoutes(routesDir: string, viewsDir: string, nunjucks: nunjucks.Environment): Promise<Route[]> {
+  const files = await getRouteFiles(routesDir);
   const routes: Route[] = [];
 
   for (const fileFullPath of files) {
-    const file = fileFullPath.replace(dir, '');
-    const routeFullPath = join(dir, file);
+    const file = fileFullPath.replace(routesDir, '');
+    const routeFullPath = join(routesDir, file);
     const routeBuilder: RouteBuilder = require(routeFullPath).default;
     const routeConfig = routeBuilder['getRouteConfig']();
     const routeBase = mapFileToRouteBase(file);
 
-    const template = join(dir, file).replace('.ts', '.njk');
+    const template = `${join(viewsDir, 'routes', routeBase.name)}.njk`;
     const i18nEnabled = routeConfig.i18nEnabled;
     const i18nMap = {};
     const getInstances: GetRouteInstancesFn = routeConfig.getInstances ?? getInstancesDefault;
