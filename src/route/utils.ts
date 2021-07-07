@@ -46,8 +46,9 @@ export interface RouteIssue {
 export function appendIndexHTML(path: string): string {
   const ext = extname(path);
   const hasTrailingSlash = path[path.length - 1] === '/';
+  const isParamCathAll = ext[ext.length - 1] === ']';
 
-  if (ext === '' || hasTrailingSlash) {
+  if (ext === '' || hasTrailingSlash || isParamCathAll) {
     path = path.replace(/\/+$/, '');
     return `${path}/index.html`;
   } else {
@@ -227,7 +228,11 @@ export function getPermalink({ i18nEnabled, config, permalink, defaultValue, loc
   // Move this part to its own function with tests
   // Replace params
   Object.entries(params).forEach(([param, value]) => {
-    out = out.replace(`[${param}]`, value as string);
+    if (out.includes(`[...${param}]`)) {
+      out = out.replace(`[...${param}]`, (value as string[]).join('/'));
+    } else {
+      out = out.replace(`[${param}]`, value as string);
+    }
   });
 
   return i18nEnabled ? prependLocale(out, config, locale) : out;

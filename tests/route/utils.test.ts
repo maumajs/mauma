@@ -22,6 +22,7 @@ describe('Route Utilities', () => {
       expect(appendIndexHTML('/us/about/')).toEqual('/us/about/index.html');
       expect(appendIndexHTML('/us/about.html')).toEqual('/us/about.html');
       expect(appendIndexHTML('/us/about.html/')).toEqual('/us/about.html/index.html');
+      expect(appendIndexHTML('/[...all]')).toEqual('/[...all]/index.html');
       expect(appendIndexHTML('/sitemap.xml')).toEqual('/sitemap.xml');
     });
   });

@@ -97,7 +97,7 @@ interface NunjucksThis {
   for (const route of routes) {
     const instances = await route.getInstances({ config, route });
 
-    // Create relate i18n instances map
+    // Set related i18n instances map
     for (const instance of instances) {
       if (!(instance.key in route.i18nMap)) {
         route.i18nMap[instance.key] = {};
