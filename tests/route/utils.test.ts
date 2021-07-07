@@ -1,15 +1,20 @@
 import { join } from 'path';
+import { MaumaI18NConfig, MaumaI18NStrategy } from '../../src/public/types';
 import {
-  getRouteName,
-  getInternalURLRegexStr,
-  mapFileToRouteBase,
-  validateRouteEntries,
-  getRouteURL,
-  getRouteFiles,
-  mapPermalinkToOutput,
-  appendIndexHTML,
   addTrailingSlash,
-  addTrailingSlashToPermalink
+  addTrailingSlashToPermalink,
+  appendIndexHTML,
+  getInternalURLRegexStr,
+  getPermalinkValue,
+  getRouteFiles,
+  getRouteName,
+  getRouteURL,
+  mapFileToRouteBase,
+  mapPermalinkToOutput,
+  prependLocale,
+  replaceParams,
+  RoutePermalink,
+  validateRouteEntries,
 } from '../../src/route/utils';
 
 describe('Route Utilities', () => {
@@ -217,9 +222,78 @@ describe('Route Utilities', () => {
     });
   });
 
-  describe.skip('getOutputFile', () => {
-    it(`should…`, () => {
+  describe('getPermalinkValue', () => {
+    it(`should work with a string`, () => {
+      const permalink: RoutePermalink = '/us/about';
+      expect(getPermalinkValue(permalink, 'default', 'en')).toBe('/us/about');
+    });
 
+    it(`should work with a locales map`, () => {
+      const permalink: RoutePermalink = {
+        es: '/nosotros/quienes-somos',
+      };
+
+      expect(getPermalinkValue(permalink, 'default', 'es')).toBe('/nosotros/quienes-somos');
+    });
+
+    it(`should return the default value if the locale doesn't have any value`, () => {
+      const permalink: RoutePermalink = {
+        es: '/nosotros/quienes-somos',
+      };
+
+      expect(getPermalinkValue(permalink, '/us/about', 'en')).toBe('/us/about');
+    });
+  });
+
+  describe('replaceParams', () => {
+    it(`should replace the parameters`, () => {
+      expect(replaceParams('/', {})).toBe('/');
+      expect(replaceParams('/us/about', {})).toBe('/us/about');
+      expect(replaceParams('/blog/[slug]', { slug: 'lorem-ipsum' })).toBe('/blog/lorem-ipsum');
+      expect(replaceParams('/blog/[...all]', { all: ['foo', '42', 'bar'] })).toBe('/blog/foo/42/bar');
+    });
+
+    it(`should throw an error if the param is missing`, () => {
+      expect(() => {
+        replaceParams('/blog/[slug]', {});
+      }).toThrow();
+    });
+  });
+
+  describe('prependLocale', () => {
+    describe('Prefix', () => {
+      const config: MaumaI18NConfig = {
+        defaultLocale: 'en',
+        locales: [{ code: 'en' }, { code: 'es' }],
+        strategy: MaumaI18NStrategy.Prefix,
+      };
+
+      it(`should prefix always`, () => {
+        expect(prependLocale('/us/about', config, 'en')).toBe('/en/us/about');
+        expect(prependLocale('/us/about', config, 'ca')).toBe('/ca/us/about');
+      });
+
+      it(`shouldn't prefix if locale param is missing`, () => {
+        expect(prependLocale('/us/about', config)).toBe('/us/about');
+      });
+    });
+
+    describe('PrefixExceptDefault', () => {
+      const config: MaumaI18NConfig = {
+        defaultLocale: 'en',
+        locales: [{ code: 'en' }, { code: 'es' }],
+        strategy: MaumaI18NStrategy.PrefixExceptDefault,
+      };
+
+      it(`should prefix only non default locales`, () => {
+        expect(prependLocale('/us/about', config, 'en')).toBe('/us/about');
+        expect(prependLocale('/us/about', config, 'es')).toBe('/es/us/about');
+        expect(prependLocale('/us/about', config, 'ca')).toBe('/ca/us/about');
+      });
+
+      it(`shouldn't prefix if locale param is missing`, () => {
+        expect(prependLocale('/us/about', config)).toBe('/us/about');
+      });
     });
   });
 

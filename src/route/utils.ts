@@ -93,9 +93,15 @@ export function getInternalURLRegex(internalURL: string): RegExp {
   return new RegExp(getInternalURLRegexStr(internalURL));
 }
 
+const PARAM_REGEX = /(\[.*?\])/g;
+
+export function getURLParams(url: string): string[] {
+  return [...url.matchAll(PARAM_REGEX)].map(match => match[0]);
+}
+
 export function getInternalURLRegexStr(internalURL: string): string {
   // Replace [param] or [...param] with named group regex
-  const regex = internalURL.replace(/(\[.*?\])/g, (match) => {
+  const regex = internalURL.replace(PARAM_REGEX, (match) => {
     const groupName = match.replace(/[\[\]\.]/g, '');
 
     if (!match.includes('...')) {
@@ -211,39 +217,47 @@ export interface GetPermalinkParams {
 }
 
 export function getPermalink({ i18nEnabled, config, permalink, defaultValue, locale, params }: GetPermalinkParams): string {
-  let out: string;
-
-  // Move this part to its own function with tests
-  if (typeof permalink === 'string') {
-    out = permalink;
-  } else {
-    if (locale && permalink[locale]) {
-      out = permalink[locale];
-    } else {
-      out = defaultValue;
-    }
-  }
-
-  // This won't work /w [...all]
-  // Move this part to its own function with tests
-  // Replace params
-  Object.entries(params).forEach(([param, value]) => {
-    if (out.includes(`[...${param}]`)) {
-      out = out.replace(`[...${param}]`, (value as string[]).join('/'));
-    } else {
-      out = out.replace(`[${param}]`, value as string);
-    }
-  });
-
+  const out = replaceParams(getPermalinkValue(permalink, defaultValue, locale), params);
   return i18nEnabled ? prependLocale(out, config, locale) : out;
 }
 
-// Prefix locale for i18n routes
-export function prependLocale(file: string, config: MaumaI18NConfig, locale?: string): string {
-  if (!!locale && (config.strategy === MaumaI18NStrategy.Prefix || locale !== config.defaultLocale)) {
-    return `/${locale}${file}`;
+export function getPermalinkValue(permalink: RoutePermalink, defaultValue: string, locale?: string): string {
+  if (typeof permalink === 'string') {
+    return permalink;
   } else {
-    return file;
+    if (locale && permalink[locale]) {
+      return permalink[locale];
+    } else {
+      return defaultValue;
+    }
+  }
+}
+
+export function replaceParams(url: string, params: RouteParams): string {
+  Object.entries(params).forEach(([param, value]) => {
+    if (url.includes(`[...${param}]`)) {
+      url = url.replace(`[...${param}]`, (value as string[]).join('/'));
+    } else {
+      url = url.replace(`[${param}]`, value as string);
+    }
+  });
+
+  // Check if there are unmatched params
+  const unmatched = getURLParams(url);
+
+  if (unmatched.length > 0) {
+    throw new Error(`Unmatched param "${unmatched[0]}"`);
+  }
+
+  return url;
+}
+
+// Prefix locale for i18n routes
+export function prependLocale(url: string, config: MaumaI18NConfig, locale?: string): string {
+  if (!!locale && (config.strategy === MaumaI18NStrategy.Prefix || locale !== config.defaultLocale)) {
+    return `/${locale}${url}`;
+  } else {
+    return url;
   }
 }
 
