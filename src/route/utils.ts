@@ -32,7 +32,7 @@ export interface Route extends RouteBase {
 }
 
 export interface RouteInstance<Data = any> {
-  id: string;
+  key: string;
   locale?: string;
   params: RouteParams;
   data?: Data;
@@ -244,9 +244,9 @@ export function prependLocale(file: string, config: MaumaI18NConfig, locale?: st
 
 export const getInstancesDefault: GetRouteInstancesFn = async ({ config, route }) => {
   if (route.i18nEnabled) {
-    return config.i18n.locales.map(({ code }) => ({ id: route.name, params: {}, locale: code }));
+    return config.i18n.locales.map(({ code }) => ({ key: route.name, params: {}, locale: code }));
   } else {
-    return [{ id: route.name, params: {}, locale: undefined }];
+    return [{ key: route.name, params: {}, locale: undefined }];
   }
 };
 

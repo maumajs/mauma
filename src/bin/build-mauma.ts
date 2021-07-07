@@ -38,8 +38,8 @@ interface NunjucksThis {
   nunjucksEnv.addGlobal('haslocale', function (this: NunjucksThis, locale: string): boolean {
     const { instance, route } = this.ctx;
 
-    if (instance.id in route.i18nMap) {
-      if (locale in route.i18nMap[instance.id]) {
+    if (instance.key in route.i18nMap) {
+      if (locale in route.i18nMap[instance.key]) {
         return true;
       }
     }
@@ -50,9 +50,9 @@ interface NunjucksThis {
   nunjucksEnv.addGlobal('switchlocale', function (this: NunjucksThis, locale: string): string {
     const { instance, route } = this.ctx;
 
-    if (instance.id in route.i18nMap) {
-      if (locale in route.i18nMap[instance.id]) {
-        const translation = route.i18nMap[instance.id][locale];
+    if (instance.key in route.i18nMap) {
+      if (locale in route.i18nMap[instance.key]) {
+        const translation = route.i18nMap[instance.key][locale];
 
         return getPermalink({
           i18nEnabled: route.i18nEnabled,
@@ -99,12 +99,12 @@ interface NunjucksThis {
 
     // Create relate i18n instances map
     for (const instance of instances) {
-      if (!(instance.id in route.i18nMap)) {
-        route.i18nMap[instance.id] = {};
+      if (!(instance.key in route.i18nMap)) {
+        route.i18nMap[instance.key] = {};
       }
 
       if (instance.locale) {
-        route.i18nMap[instance.id][instance.locale] = instance;
+        route.i18nMap[instance.key][instance.locale] = instance;
       }
     }
 
