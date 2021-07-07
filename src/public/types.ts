@@ -8,14 +8,16 @@ export interface MaumaLocale {
   [key: string]: any; // Allow extra properties
 }
 
+export interface MaumaI18NConfig {
+  locales: MaumaLocale[];
+  defaultLocale: string;
+  strategy: MaumaI18NStrategy;
+}
+
 export interface MaumaConfig {
   // dir?: {
   //   routes?: string;
   //   views?: string;
   // };
-  i18n: {
-    locales: MaumaLocale[];
-    defaultLocale: string;
-    strategy: MaumaI18NStrategy;
-  };
+  i18n: MaumaI18NConfig;
 }

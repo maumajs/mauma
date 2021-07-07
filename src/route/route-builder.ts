@@ -4,9 +4,10 @@ import { Route, RouteInstance, RouteParams } from './utils';
 export interface RenderContext<Data = any> {
   config: MaumaConfig;
   route: Route;
-  data?: Data;
-  params: RouteParams;
+  instance: RouteInstance;
   locale?: string;
+  params: RouteParams,
+  data?: Data;
 }
 
 export interface GetRouteInstancesFnParams {

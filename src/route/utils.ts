@@ -4,8 +4,8 @@ import { constants } from 'fs';
 import { access, stat } from 'fs/promises';
 import nunjucks from 'nunjucks';
 
-import { GetDataFn, GetRouteInstancesFn, RenderFn, RouteBuilder, RouteConfig } from './route-builder';
-import { MaumaConfig, MaumaI18NStrategy } from '../public/types';
+import { GetDataFn, GetRouteInstancesFn, RenderFn, RouteBuilder } from './route-builder';
+import { MaumaI18NConfig, MaumaI18NStrategy } from '../public/types';
 
 export type RoutePermalink = string | Record<string, string>;
 export type RouteParams = Record<string, string | string[]>;
@@ -23,6 +23,7 @@ export interface RouteBase {
 export interface Route extends RouteBase {
   readonly template: string;
   readonly i18nEnabled: boolean;
+  readonly i18nMap: Record<string, Record<string, RouteInstance>>;
   readonly permalink: string | Record<string, string>;
   readonly output: string | Record<string, string>;
   readonly getInstances: GetRouteInstancesFn;
@@ -31,14 +32,10 @@ export interface Route extends RouteBase {
 }
 
 export interface RouteInstance<Data = any> {
-  params: RouteParams;
+  id: string;
   locale?: string;
+  params: RouteParams;
   data?: Data;
-}
-
-export interface RouteRenderTask<Data = any> {
-  route: Route;
-  instance: RouteInstance<Data>;
 }
 
 export interface RouteIssue {
@@ -171,6 +168,7 @@ export async function getRoutes(dir: string, nunjucks: nunjucks.Environment): Pr
 
     const template = join(dir, file).replace('.ts', '.njk');
     const i18nEnabled = routeConfig.i18nEnabled;
+    const i18nMap = {};
     const getInstances: GetRouteInstancesFn = routeConfig.getInstances ?? getInstancesDefault;
     const getData: GetDataFn = routeConfig.getData ?? getDataDefault;
     const render: RenderFn = routeConfig.render ?? renderDefault(nunjucks);
@@ -189,6 +187,7 @@ export async function getRoutes(dir: string, nunjucks: nunjucks.Environment): Pr
       ...routeBase,
       template,
       i18nEnabled,
+      i18nMap,
       file,
       permalink,
       output,
@@ -201,30 +200,42 @@ export async function getRoutes(dir: string, nunjucks: nunjucks.Environment): Pr
   return routes;
 }
 
-export function getOutputFile(output: RoutePermalink, defaultOutput: string, instance: RouteInstance): string {
-  let file: string;
+export interface GetPermalinkParams {
+  i18nEnabled: boolean;
+  config: MaumaI18NConfig;
+  permalink: RoutePermalink;
+  defaultValue: string;
+  params: RouteParams;
+  locale?: string;
+}
 
-  if (typeof output === 'string') {
-    file = output;
+export function getPermalink({ i18nEnabled, config, permalink, defaultValue, locale, params }: GetPermalinkParams): string {
+  let out: string;
+
+  // Move this part to its own function with tests
+  if (typeof permalink === 'string') {
+    out = permalink;
   } else {
-    if (instance.locale && output[instance.locale]) {
-      file = output[instance.locale];
+    if (locale && permalink[locale]) {
+      out = permalink[locale];
     } else {
-      file = defaultOutput;
+      out = defaultValue;
     }
   }
 
+  // This won't work /w [...all]
+  // Move this part to its own function with tests
   // Replace params
-  Object.entries(instance.params).forEach(([param, value]) => {
-    file = file.replace(`[${param}]`, value as string);
+  Object.entries(params).forEach(([param, value]) => {
+    out = out.replace(`[${param}]`, value as string);
   });
 
-  return file;
+  return i18nEnabled ? prependLocale(out, config, locale) : out;
 }
 
 // Prefix locale for i18n routes
-export function prependLocale(file: string, config: MaumaConfig, locale?: string): string {
-  if (locale && (config.i18n.strategy === MaumaI18NStrategy.Prefix || locale !== config.i18n.defaultLocale)) {
+export function prependLocale(file: string, config: MaumaI18NConfig, locale?: string): string {
+  if (!!locale && (config.strategy === MaumaI18NStrategy.Prefix || locale !== config.defaultLocale)) {
     return `/${locale}${file}`;
   } else {
     return file;
@@ -233,17 +244,21 @@ export function prependLocale(file: string, config: MaumaConfig, locale?: string
 
 export const getInstancesDefault: GetRouteInstancesFn = async ({ config, route }) => {
   if (route.i18nEnabled) {
-    return config.i18n.locales.map(({ code }) => ({ params: {}, locale: code }));
+    return config.i18n.locales.map(({ code }) => ({ id: route.name, params: {}, locale: code }));
   } else {
-    return [{ params: {}, locale: undefined }];
+    return [{ id: route.name, params: {}, locale: undefined }];
   }
 };
 
 export const getDataDefault: GetDataFn = async (instance) => {
-  return undefined;
+  if (instance.data) {
+    return instance.data;
+  } else {
+    return undefined;
+  }
 };
 
-export const renderDefault: (nunjucks: nunjucks.Environment) => RenderFn = (nunjucks) => {
+export function renderDefault(nunjucks: nunjucks.Environment): RenderFn {
   return async (ctx) => {
     if (await access(ctx.route.template, constants.R_OK).then(() => true)) {
       return nunjucks.render(ctx.route.template, ctx);
