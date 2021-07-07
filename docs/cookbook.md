@@ -14,3 +14,35 @@
   - How to create a language switcher
   - How to translate URLs
   - How to add i18n "messages"/strings
+
+---
+
+How to add conditional dash on title:
+
+```njk
+<!-- layout.njk -->
+<title>
+  {% set title %}{% block title %}{% endblock %}{% endset %}
+  {% if title %}
+    {{ title }} - Mauma SSG
+  {% else %}
+    Mauma: Static Site Generator
+  {% endif %}
+</title>
+```
+
+```njk
+<!-- index.njk -->
+{% extends 'layout.njk' %}
+{% block title %}{% endblock %}
+```
+
+Gives: `Mauma: Static Site Generator`
+
+```njk
+<!-- about.njk -->
+{% extends 'layout.njk' %}
+{% block title %}About{% endblock %}
+```
+
+Gives: `About - Mauma SSG`
