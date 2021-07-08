@@ -1,14 +1,15 @@
 import { dirname, join } from 'path';
 import nunjucks, { Environment } from 'nunjucks';
 import { mkdir, writeFile } from 'fs/promises';
+const { register: esbuildRegister } = require('esbuild-register/dist/node')
 import del from 'del';
 
 import { MaumaConfig } from '../public/types';
-import { appendIndexHTML, getOutputFile, getPermalink, getRoutes, Route, RouteInstance, RouteParams, validateRouteEntries } from '../route/utils';
+import { getOutputFile, getPermalink, getRoutes, Route, RouteInstance, RouteParams, validateRouteEntries } from '../route/utils';
 import { RenderContext } from '../route/route-builder';
 
 // Register on the fly TS => JS converter
-require('@swc-node/register');
+esbuildRegister();
 
 const config: MaumaConfig = require(`${process.cwd()}/src/config.ts`).default;
 const viewsDir = join(process.cwd(), 'src/views');
