@@ -39,9 +39,7 @@ interface NunjucksThis {
     const { instance, route } = this.ctx;
 
     if (instance.key in route.i18nMap) {
-      if (locale in route.i18nMap[instance.key]) {
-        return true;
-      }
+      return locale in route.i18nMap[instance.key];
     }
 
     return false;
@@ -53,13 +51,7 @@ interface NunjucksThis {
     if (instance.key in route.i18nMap) {
       if (locale in route.i18nMap[instance.key]) {
         const translation = route.i18nMap[instance.key][locale];
-        const dummyInstance: RouteInstance = {
-          key: instance.key,
-          locale,
-          params: translation.params,
-        };
-
-        return getPermalink(config.i18n, route, dummyInstance);
+        return getPermalink(config.i18n, route, translation);
       }
     }
 
@@ -91,8 +83,13 @@ interface NunjucksThis {
   for (const route of routes) {
     const instances = await route.getInstances({ config, route });
 
-    // Set related i18n instances map
+    // Process instances
     for (const instance of instances) {
+      // Get instance data
+      // It's important to load ALL the data before rendering
+      instance.data = await route.getData(instance);
+
+      // Set related i18n instances map
       if (!(instance.key in route.i18nMap)) {
         route.i18nMap[instance.key] = {};
       }
@@ -104,19 +101,17 @@ interface NunjucksThis {
 
     // Render
     for (const instance of instances) {
-      const outputFile = getOutputFile(config.i18n, route, instance);
-      const data = await route.getData(instance);
-      const ctx: RenderContext = {
+      const content = await route.render({
         config: config,
         route: route,
         instance: instance,
-        data: data,
+        data: instance.data,
         params: instance.params,
         locale: instance.locale,
-      };
+      });
 
-      // Render & save
-      const content = await route.render(ctx);
+      // Save
+      const outputFile = getOutputFile(config.i18n, route, instance);
       const outputPath = join(prebuildDir, outputFile);
       await mkdir(dirname(outputPath), { recursive: true });
       await writeFile(outputPath, content);

@@ -11,6 +11,7 @@ import {
   mapFileToRouteBase,
   prependLocale,
   replaceParams,
+  RouteInstance,
   RoutePermalink,
   validateRouteEntries,
 } from '../../src/route/utils';
@@ -189,9 +190,21 @@ describe('Route Utilities', () => {
   });
 
   describe('getPermalinkValue', () => {
+    const instance: (locale: string) => RouteInstance = (locale) => ({
+      key: '',
+      locale,
+      params: {},
+      data: { foo: 42 }
+    });
+
     it(`should work with a string`, () => {
       const permalink: RoutePermalink = '/us/about';
-      expect(getPermalinkValue(permalink, 'default', 'en')).toBe('/us/about');
+      expect(getPermalinkValue(permalink, 'default', instance('en'))).toBe('/us/about');
+    });
+
+    it(`should work with a function`, () => {
+      const permalink: RoutePermalink = ({ data }) => `/us/about/${data.foo}`;
+      expect(getPermalinkValue(permalink, 'default', instance('en'))).toBe('/us/about/42');
     });
 
     it(`should work with a locales map`, () => {
@@ -199,7 +212,7 @@ describe('Route Utilities', () => {
         es: '/nosotros/quienes-somos',
       };
 
-      expect(getPermalinkValue(permalink, 'default', 'es')).toBe('/nosotros/quienes-somos');
+      expect(getPermalinkValue(permalink, 'default', instance('es'))).toBe('/nosotros/quienes-somos');
     });
 
     it(`should return the default value if the locale doesn't have any value`, () => {
@@ -207,7 +220,7 @@ describe('Route Utilities', () => {
         es: '/nosotros/quienes-somos',
       };
 
-      expect(getPermalinkValue(permalink, '/us/about', 'en')).toBe('/us/about');
+      expect(getPermalinkValue(permalink, '/us/about', instance('en'))).toBe('/us/about');
     });
   });
 

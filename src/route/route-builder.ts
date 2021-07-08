@@ -1,5 +1,5 @@
 import { MaumaConfig } from '../public/types';
-import { Route, RouteInstance, RouteParams } from './utils';
+import { Route, RouteInstance, RouteParams, RoutePermalink } from './utils';
 
 export interface RenderContext<Data = any> {
   config: MaumaConfig;
@@ -18,7 +18,7 @@ export interface GetRouteInstancesFnParams {
 export type GetDataFn<Data = any> = (instance: RouteInstance<Data>) => Promise<Data>;
 export type GetRouteInstancesFn<Data = any> = (params: GetRouteInstancesFnParams) => Promise<RouteInstance<Data>[]>;
 export type GetI18NMessagesFn = () => Promise<Record<string, string>>;
-export type GetPermalinkFn = () => Promise<string | Record<string, string>>;
+export type GetPermalinkFn = () => Promise<RoutePermalink>;
 export type RenderFn<Data = any> = (ctx: RenderContext<Data>) => Promise<string>;
 
 export interface RouteConfig<Data = any> {

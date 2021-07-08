@@ -6,6 +6,7 @@
   - How to add a page without locale
   - How to add a binary route, e.g. generated PNG
   - How to add a route in a random place, /index.ts => /weird/place/index.html
+  - How to add data value in permalink with permalink function (instance: RouteInstance) => string
   - Generate a binary "page" => `Page::render` => buffer
   - How to change headers
   - Give a concrete type to `GetData` & `Render` via `MaumaRoute<T>()`

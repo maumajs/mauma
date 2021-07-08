@@ -7,7 +7,7 @@ import nunjucks from 'nunjucks';
 import { GetDataFn, GetRouteInstancesFn, RenderFn, RouteBuilder } from './route-builder';
 import { MaumaI18NConfig, MaumaI18NStrategy } from '../public/types';
 
-export type RoutePermalink = string | Record<string, string>;
+export type RoutePermalink = string | Record<string, string> | ((instance: RouteInstance) => string);
 export type RouteParams = Record<string, string | string[]>;
 
 export interface RouteBase {
@@ -23,7 +23,7 @@ export interface Route extends RouteBase {
   readonly template: string;
   readonly i18nEnabled: boolean;
   readonly i18nMap: Record<string, Record<string, RouteInstance>>;
-  readonly permalink: string | Record<string, string>;
+  readonly permalink: RoutePermalink;
   readonly getInstances: GetRouteInstancesFn;
   readonly getData: GetDataFn;
   readonly render: RenderFn;
@@ -162,7 +162,7 @@ export async function getRoutes(routesDir: string, viewsDir: string, nunjucks: n
       throw new Error(`Route "${routeBase.name}" is dynamic but it's missing "getInstances()"`);
     }
 
-    if (!i18nEnabled && typeof permalink !== 'string') {
+    if (!i18nEnabled && !['string', 'function'].includes(typeof permalink)) {
       throw new Error(`Route "${routeBase.name}" has i18n disabled, but "getPermalink()" returns an object. Return a string instead.`);
     }
 
@@ -182,17 +182,8 @@ export async function getRoutes(routesDir: string, viewsDir: string, nunjucks: n
   return routes;
 }
 
-export interface GetPermalinkParams {
-  i18nEnabled: boolean;
-  config: MaumaI18NConfig;
-  permalink: RoutePermalink;
-  defaultValue: string;
-  params: RouteParams;
-  locale?: string;
-}
-
 export function getPermalink(config: MaumaI18NConfig, route: Route, instance: RouteInstance): string {
-  let out = getPermalinkValue(route.permalink, route.internalURL, instance.locale);
+  let out = getPermalinkValue(route.permalink, route.internalURL, instance);
   out = replaceParams(out, instance.params);
   out = route.i18nEnabled ? prependLocale(out, config, instance.locale) : out;
   return addTrailingSlash(out);
@@ -202,10 +193,14 @@ export function getOutputFile(config: MaumaI18NConfig, route: Route, instance: R
   return appendIndexHTML(getPermalink(config, route, instance));
 }
 
-export function getPermalinkValue(permalink: RoutePermalink, defaultValue: string, locale?: string): string {
+export function getPermalinkValue(permalink: RoutePermalink, defaultValue: string, instance: RouteInstance): string {
   if (typeof permalink === 'string') {
     return permalink;
+  } if (typeof permalink === 'function') {
+    return permalink(instance);
   } else {
+    const locale = instance.locale;
+
     if (locale && permalink[locale]) {
       return permalink[locale];
     } else {
