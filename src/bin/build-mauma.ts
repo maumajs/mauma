@@ -4,7 +4,7 @@ import { mkdir, writeFile } from 'fs/promises';
 import del from 'del';
 
 import { MaumaConfig } from '../public/types';
-import { getPermalink, getRoutes, Route, RouteParams, validateRouteEntries } from '../route/utils';
+import { appendIndexHTML, getOutputFile, getPermalink, getRoutes, Route, RouteInstance, RouteParams, validateRouteEntries } from '../route/utils';
 import { RenderContext } from '../route/route-builder';
 
 // Register on the fly TS => JS converter
@@ -53,15 +53,13 @@ interface NunjucksThis {
     if (instance.key in route.i18nMap) {
       if (locale in route.i18nMap[instance.key]) {
         const translation = route.i18nMap[instance.key][locale];
-
-        return getPermalink({
-          i18nEnabled: route.i18nEnabled,
-          config: config.i18n,
-          permalink: route.permalink,
-          defaultValue: route.internalURL,
+        const dummyInstance: RouteInstance = {
+          key: instance.key,
           locale,
           params: translation.params,
-        });
+        };
+
+        return getPermalink(config.i18n, route, dummyInstance);
       }
     }
 
@@ -72,17 +70,13 @@ interface NunjucksThis {
     const route = routes.find(route => name === route.name);
 
     if (route) {
-      params = params ?? {};
-      locale = locale ?? this.ctx.locale;
+      const instance: RouteInstance = {
+        key: route.name,
+        locale: locale ?? this.ctx.locale,
+        params: params ?? {},
+      };
 
-      return getPermalink({
-        i18nEnabled: route.i18nEnabled,
-        config: config.i18n,
-        permalink: route.permalink,
-        defaultValue: route.internalURL,
-        locale,
-        params,
-      });
+      return getPermalink(config.i18n, route, instance);
     } else {
       return '';
     }
@@ -110,14 +104,7 @@ interface NunjucksThis {
 
     // Render
     for (const instance of instances) {
-      const outputFile = getPermalink({
-        i18nEnabled: route.i18nEnabled,
-        config: config.i18n,
-        permalink: route.output,
-        defaultValue: route.defaultOutput,
-        locale: instance.locale,
-        params: instance.params,
-      });
+      const outputFile = getOutputFile(config.i18n, route, instance);
       const data = await route.getData(instance);
       const ctx: RenderContext = {
         config: config,

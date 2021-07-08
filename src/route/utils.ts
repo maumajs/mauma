@@ -14,7 +14,6 @@ export interface RouteBase {
   readonly name: string;
   readonly file: string;
   readonly internalURL: string;
-  readonly defaultOutput: string;
   readonly regex: RegExp;
   readonly isCatchAll: boolean;
   readonly isDynamic: boolean;
@@ -25,7 +24,6 @@ export interface Route extends RouteBase {
   readonly i18nEnabled: boolean;
   readonly i18nMap: Record<string, Record<string, RouteInstance>>;
   readonly permalink: string | Record<string, string>;
-  readonly output: string | Record<string, string>;
   readonly getInstances: GetRouteInstancesFn;
   readonly getData: GetDataFn;
   readonly render: RenderFn;
@@ -122,29 +120,8 @@ export function mapFileToRouteBase(file: string): RouteBase {
   const name = getRouteName(file);
   const isCatchAll = file.includes('[...');
   const isDynamic = file.includes('[');
-  const defaultOutput = appendIndexHTML(internalURL);
 
-  return { name, file, internalURL, defaultOutput, regex, isCatchAll, isDynamic };
-}
-
-export function addTrailingSlashToPermalink(permalink: RoutePermalink): RoutePermalink {
-  if (typeof permalink === 'string') {
-    return addTrailingSlash(permalink);
-  } else {
-    return Object.entries(permalink)
-      .map(([locale, url]) => [locale, addTrailingSlash(url)])
-      .reduce((result, [locale, output]) => ({ ...result, [locale]: output }), {});
-  }
-}
-
-export function mapPermalinkToOutput(permalink: RoutePermalink): RoutePermalink {
-  if (typeof permalink === 'string') {
-    return appendIndexHTML(permalink);
-  } else {
-    return Object.entries(permalink)
-      .map(([locale, url]) => [locale, appendIndexHTML(url)])
-      .reduce((result, [locale, output]) => ({ ...result, [locale]: output }), {});
-  }
+  return { name, file, internalURL, regex, isCatchAll, isDynamic };
 }
 
 export async function getRouteFiles(dir: string): Promise<string[]> {
@@ -179,8 +156,7 @@ export async function getRoutes(routesDir: string, viewsDir: string, nunjucks: n
     const getInstances: GetRouteInstancesFn = routeConfig.getInstances ?? getInstancesDefault;
     const getData: GetDataFn = routeConfig.getData ?? getDataDefault;
     const render: RenderFn = routeConfig.render ?? renderDefault(nunjucks);
-    const permalink = addTrailingSlashToPermalink(routeConfig.getPermalink ? await routeConfig.getPermalink() : routeBase.internalURL);
-    const output = mapPermalinkToOutput(permalink);
+    const permalink = routeConfig.getPermalink ? await routeConfig.getPermalink() : routeBase.internalURL;
 
     if (routeBase.isDynamic && !routeConfig.getInstances) {
       throw new Error(`Route "${routeBase.name}" is dynamic but it's missing "getInstances()"`);
@@ -197,7 +173,6 @@ export async function getRoutes(routesDir: string, viewsDir: string, nunjucks: n
       i18nMap,
       file,
       permalink,
-      output,
       getInstances,
       getData,
       render,
@@ -216,9 +191,15 @@ export interface GetPermalinkParams {
   locale?: string;
 }
 
-export function getPermalink({ i18nEnabled, config, permalink, defaultValue, locale, params }: GetPermalinkParams): string {
-  const out = replaceParams(getPermalinkValue(permalink, defaultValue, locale), params);
-  return i18nEnabled ? prependLocale(out, config, locale) : out;
+export function getPermalink(config: MaumaI18NConfig, route: Route, instance: RouteInstance): string {
+  let out = getPermalinkValue(route.permalink, route.internalURL, instance.locale);
+  out = replaceParams(out, instance.params);
+  out = route.i18nEnabled ? prependLocale(out, config, instance.locale) : out;
+  return addTrailingSlash(out);
+}
+
+export function getOutputFile(config: MaumaI18NConfig, route: Route, instance: RouteInstance): string {
+  return appendIndexHTML(getPermalink(config, route, instance));
 }
 
 export function getPermalinkValue(permalink: RoutePermalink, defaultValue: string, locale?: string): string {

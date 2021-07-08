@@ -2,7 +2,6 @@ import { join } from 'path';
 import { MaumaI18NConfig, MaumaI18NStrategy } from '../../src/public/types';
 import {
   addTrailingSlash,
-  addTrailingSlashToPermalink,
   appendIndexHTML,
   getInternalURLRegexStr,
   getPermalinkValue,
@@ -10,7 +9,6 @@ import {
   getRouteName,
   getRouteURL,
   mapFileToRouteBase,
-  mapPermalinkToOutput,
   prependLocale,
   replaceParams,
   RoutePermalink,
@@ -187,38 +185,6 @@ describe('Route Utilities', () => {
       expect(route.internalURL).toBe('/blog/[...all]');
       expect(route.isCatchAll).toBe(true);
       expect(route.isDynamic).toBe(true);
-    });
-  });
-
-  describe('mapPermalinkToOutput', () => {
-    it('should map string permalinks', () => {
-      expect(mapPermalinkToOutput('/')).toEqual('/index.html');
-    });
-
-    it('should map record permalinks', () => {
-      expect(mapPermalinkToOutput({
-        es: '/',
-        ca: '/',
-      })).toEqual({
-        es: '/index.html',
-        ca: '/index.html',
-      });
-    });
-  });
-
-  describe('addTrailingSlashToPermalink', () => {
-    it('should map string permalinks', () => {
-      expect(addTrailingSlashToPermalink('/')).toEqual('/');
-    });
-
-    it('should map record permalinks', () => {
-      expect(addTrailingSlashToPermalink({
-        es: '/nosotros/quienes-somos',
-        ca: '/nosaltres/qui-som/',
-      })).toEqual({
-        es: '/nosotros/quienes-somos/',
-        ca: '/nosaltres/qui-som/',
-      });
     });
   });
 
