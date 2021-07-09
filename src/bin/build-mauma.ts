@@ -38,7 +38,7 @@ interface NunjucksThis {
   nunjucksEnv.addGlobal('config', config);
 
   nunjucksEnv.addFilter('translate', function (this: NunjucksThis, key: string, replacements: Record<string, any>): string {
-    const { config, route, locale } = this.ctx;
+    const { config, locale } = this.ctx;
     let translation = key;
 
     if (locale) {
@@ -46,10 +46,6 @@ interface NunjucksThis {
         if (key in config.i18n.translations[locale]) {
           translation = config.i18n.translations[locale][key];
         }
-      }
-
-      if (key in route.translations[locale]) {
-        translation = route.translations[locale][key];
       }
     }
 

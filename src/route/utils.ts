@@ -27,7 +27,6 @@ export interface Route extends RouteBase {
   readonly getInstances: GetRouteInstancesFn;
   readonly getData: GetDataFn;
   readonly render: RenderFn;
-  readonly translations: Record<string, MaumaTranslations>;
 }
 
 export interface RouteInstance<Data = any> {
@@ -158,7 +157,6 @@ export async function getRoutes(routesDir: string, viewsDir: string, nunjucks: n
     const getData: GetDataFn = routeConfig.getData ?? getDataDefault;
     const render: RenderFn = routeConfig.render ?? renderDefault(nunjucks);
     const permalink = routeConfig.getPermalink ? await routeConfig.getPermalink() : routeBase.internalURL;
-    const translations = routeConfig.getTranslations ? await routeConfig.getTranslations() : {};
 
     if (routeBase.isDynamic && !routeConfig.getInstances) {
       throw new Error(`Route "${routeBase.name}" is dynamic but it's missing "getInstances()"`);
@@ -178,7 +176,6 @@ export async function getRoutes(routesDir: string, viewsDir: string, nunjucks: n
       getInstances,
       getData,
       render,
-      translations,
     });
   }
 

@@ -17,7 +17,6 @@ export interface GetRouteInstancesFnParams {
 
 export type GetDataFn<Data = any> = (instance: RouteInstance<Data>) => Promise<Data>;
 export type GetRouteInstancesFn<Data = any> = (params: GetRouteInstancesFnParams) => Promise<RouteInstance<Data>[]>;
-export type GetTranslationsFn = () => Promise<Record<string, MaumaTranslations>>;
 export type GetPermalinkFn = () => Promise<RoutePermalink>;
 export type RenderFn<Data = any> = (ctx: RenderContext<Data>) => Promise<string>;
 
@@ -25,7 +24,6 @@ export interface RouteConfig<Data = any> {
   i18nEnabled: boolean;
   getData?: GetDataFn<Data>;
   getInstances?: GetRouteInstancesFn<Data>;
-  getTranslations?: GetTranslationsFn;
   getPermalink?: GetPermalinkFn;
   render?: RenderFn<Data>;
 }
@@ -34,7 +32,6 @@ export class RouteBuilder<Data = any> {
   private i18nEnabled = true;
   private getDataFn?: GetDataFn<Data>;
   private getInstancesFn?: GetRouteInstancesFn<Data>;
-  private getTranslationsFn?: GetTranslationsFn;
   private getPermalinkFn?: GetPermalinkFn;
   private renderFn?: RenderFn<Data>;
 
@@ -43,7 +40,6 @@ export class RouteBuilder<Data = any> {
       i18nEnabled: this.i18nEnabled,
       getData: this.getDataFn,
       getInstances: this.getInstancesFn,
-      getTranslations: this.getTranslationsFn,
       getPermalink: this.getPermalinkFn,
       render: this.renderFn,
     };
@@ -66,11 +62,6 @@ export class RouteBuilder<Data = any> {
 
   public getPermalink(fn: GetPermalinkFn): RouteBuilder<Data> {
     this.getPermalinkFn = fn;
-    return this;
-  }
-
-  public getTranslations(fn: GetTranslationsFn): RouteBuilder<Data> {
-    this.getTranslationsFn = fn;
     return this;
   }
 
