@@ -22,7 +22,7 @@ export interface RouteBase {
 export interface Route extends RouteBase {
   readonly template: string;
   readonly i18nEnabled: boolean;
-  readonly i18nMap: Record<string, Record<string, RouteInstance>>;
+  readonly i18nMap: Map<string, Map<string, RouteInstance>>;
   readonly permalink: RoutePermalink;
   readonly getInstances: GetRouteInstancesFn;
   readonly getData: GetDataFn;
@@ -152,7 +152,7 @@ export async function getRoutes(routesDir: string, viewsDir: string, nunjucks: n
 
     const template = `${join(viewsDir, 'routes', routeBase.name)}.njk`;
     const i18nEnabled = routeConfig.i18nEnabled;
-    const i18nMap = {};
+    const i18nMap = new Map<string, Map<string, RouteInstance>>();
     const getInstances: GetRouteInstancesFn = routeConfig.getInstances ?? getInstancesDefault;
     const getData: GetDataFn = routeConfig.getData ?? getDataDefault;
     const render: RenderFn = routeConfig.render ?? renderDefault(nunjucks);

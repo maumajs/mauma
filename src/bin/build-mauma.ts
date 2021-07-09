@@ -39,8 +39,8 @@ interface NunjucksThis {
   nunjucksEnv.addGlobal('haslocale', function (this: NunjucksThis, locale: string): boolean {
     const { instance, route } = this.ctx;
 
-    if (instance.key in route.i18nMap) {
-      return locale in route.i18nMap[instance.key];
+    if (route.i18nMap.has(instance.key)) {
+      return route.i18nMap.get(instance.key)!.has(locale);
     }
 
     return false;
@@ -49,9 +49,9 @@ interface NunjucksThis {
   nunjucksEnv.addGlobal('switchlocale', function (this: NunjucksThis, locale: string): string {
     const { instance, route } = this.ctx;
 
-    if (instance.key in route.i18nMap) {
-      if (locale in route.i18nMap[instance.key]) {
-        const translation = route.i18nMap[instance.key][locale];
+    if (route.i18nMap.has(instance.key)) {
+      if (route.i18nMap.get(instance.key)!.has(locale)) {
+        const translation = route.i18nMap.get(instance.key)!.get(locale)!;
         return getPermalink(config.i18n, route, translation);
       }
     }
@@ -91,12 +91,12 @@ interface NunjucksThis {
       instance.data = await route.getData(instance);
 
       // Set related i18n instances map
-      if (!(instance.key in route.i18nMap)) {
-        route.i18nMap[instance.key] = {};
+      if (!route.i18nMap.has(instance.key)) {
+        route.i18nMap.set(instance.key, new Map());
       }
 
       if (instance.locale) {
-        route.i18nMap[instance.key][instance.locale] = instance;
+        route.i18nMap.get(instance.key)!.set(instance.locale, instance);
       }
     }
 
