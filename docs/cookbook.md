@@ -7,13 +7,14 @@
   - How to add a binary route, e.g. generated PNG
   - How to add a route in a random place, /index.ts => /weird/place/index.html
   - How to add data value in permalink with permalink function (instance: RouteInstance) => string
+    - How to link to that page? url(instance)?
   - Generate a binary "page" => `Page::render` => buffer
   - How to change headers
   - Give a concrete type to `GetData` & `Render` via `MaumaRoute<T>()`
   - Add assets (favicon, images…) in `public` folder
 - i18n
   - How to prefix all locales and create a language selection page in `/`
-  - How to create a language switcher
+  - How to create a language switcher (`localeurl`)
   - How to translate URLs
   - How to add translations (messages)
     - How to use varibles in translations `{{var}}`

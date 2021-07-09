@@ -66,7 +66,7 @@ interface NunjucksThis {
     return false;
   });
 
-  nunjucksEnv.addGlobal('switchlocale', function (this: NunjucksThis, locale: string): string {
+  nunjucksEnv.addGlobal('localeurl', function (this: NunjucksThis, locale: string): string {
     const { instance, route } = this.ctx;
 
     if (route.i18nMap.has(instance.key)) {
