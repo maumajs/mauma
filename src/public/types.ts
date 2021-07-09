@@ -12,6 +12,8 @@ export interface MaumaTranslations {
   [key: string]: string; // | MaumaTranslations;
 }
 
+export type MaumaConfigFn = () => Promise<MaumaConfig>;
+
 export interface MaumaI18NConfig {
   locales: MaumaLocale[];
   defaultLocale: string;

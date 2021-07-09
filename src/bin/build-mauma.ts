@@ -4,14 +4,14 @@ import { mkdir, writeFile } from 'fs/promises';
 const { register: esbuildRegister } = require('esbuild-register/dist/node')
 import del from 'del';
 
-import { MaumaConfig } from '../public/types';
+import { MaumaConfigFn } from '../public/types';
 import { getOutputFile, getPermalink, getRoutes, Route, RouteInstance, RouteParams, validateRouteEntries } from '../route/utils';
 import { RenderContext } from '../route/route-builder';
 
 // Register on the fly TS => JS converter
 esbuildRegister();
 
-const config: MaumaConfig = require(`${process.cwd()}/src/config.ts`).default;
+const configFn: MaumaConfigFn = require(`${process.cwd()}/src/config.ts`).default;
 const viewsDir = join(process.cwd(), 'src/views');
 const routesDir = join(process.cwd(), 'src/routes');
 const clientDir = join(process.cwd(), 'src/client');
@@ -30,6 +30,7 @@ interface NunjucksThis {
   // Remove build directory
   await del(maumaDir);
 
+  const config = await configFn();
   const routes: Route[] = await getRoutes(routesDir, viewsDir, nunjucksEnv);
   const routeIssues = validateRouteEntries(routes);
 
