@@ -10,6 +10,7 @@
   - Generate a binary "page" => `Page::render` => buffer
   - How to change headers
   - Give a concrete type to `GetData` & `Render` via `MaumaRoute<T>()`
+  - Add assets (favicon, images…) in `public` folder
 - i18n
   - How to prefix all locales and create a language selection page in `/`
   - How to create a language switcher

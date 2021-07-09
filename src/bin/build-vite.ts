@@ -4,6 +4,7 @@ import { build } from 'vite';
 import { minifyHtml } from 'vite-plugin-html';
 
 const clientDir = join(process.cwd(), 'src/client');
+const publicDir = join(process.cwd(), 'src/public');
 const scssDir = join(process.cwd(), 'src/scss');
 const prebuildDir = join(process.cwd(), '.mauma/build');
 const buildDir = join(process.cwd(), 'build');
@@ -13,6 +14,7 @@ const buildDir = join(process.cwd(), 'build');
 
   await build({
     root: prebuildDir,
+    publicDir: publicDir,
     logLevel: 'warn',
     resolve: {
       alias: [
