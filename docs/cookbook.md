@@ -15,7 +15,9 @@
   - How to prefix all locales and create a language selection page in `/`
   - How to create a language switcher
   - How to translate URLs
-  - How to add i18n "messages"/strings
+  - How to add translations (messages)
+    - How to use varibles in translations `{{var}}`
+    - Explain nested translations
 
 ---
 

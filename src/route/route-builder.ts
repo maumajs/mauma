@@ -1,4 +1,4 @@
-import { MaumaConfig } from '../public/types';
+import { MaumaConfig, MaumaTranslations } from '../public/types';
 import { Route, RouteInstance, RouteParams, RoutePermalink } from './utils';
 
 export interface RenderContext<Data = any> {
@@ -17,7 +17,7 @@ export interface GetRouteInstancesFnParams {
 
 export type GetDataFn<Data = any> = (instance: RouteInstance<Data>) => Promise<Data>;
 export type GetRouteInstancesFn<Data = any> = (params: GetRouteInstancesFnParams) => Promise<RouteInstance<Data>[]>;
-export type GetI18NMessagesFn = () => Promise<Record<string, string>>;
+export type GetTranslationsFn = () => Promise<Record<string, MaumaTranslations>>;
 export type GetPermalinkFn = () => Promise<RoutePermalink>;
 export type RenderFn<Data = any> = (ctx: RenderContext<Data>) => Promise<string>;
 
@@ -25,7 +25,7 @@ export interface RouteConfig<Data = any> {
   i18nEnabled: boolean;
   getData?: GetDataFn<Data>;
   getInstances?: GetRouteInstancesFn<Data>;
-  getI18NMessages?: GetI18NMessagesFn;
+  getTranslations?: GetTranslationsFn;
   getPermalink?: GetPermalinkFn;
   render?: RenderFn<Data>;
 }
@@ -34,7 +34,7 @@ export class RouteBuilder<Data = any> {
   private i18nEnabled = true;
   private getDataFn?: GetDataFn<Data>;
   private getInstancesFn?: GetRouteInstancesFn<Data>;
-  private getI18NMessagesFn?: GetI18NMessagesFn;
+  private getTranslationsFn?: GetTranslationsFn;
   private getPermalinkFn?: GetPermalinkFn;
   private renderFn?: RenderFn<Data>;
 
@@ -43,7 +43,7 @@ export class RouteBuilder<Data = any> {
       i18nEnabled: this.i18nEnabled,
       getData: this.getDataFn,
       getInstances: this.getInstancesFn,
-      getI18NMessages: this.getI18NMessagesFn,
+      getTranslations: this.getTranslationsFn,
       getPermalink: this.getPermalinkFn,
       render: this.renderFn,
     };
@@ -64,13 +64,13 @@ export class RouteBuilder<Data = any> {
     return this;
   }
 
-  public getI18NMessages(fn: GetI18NMessagesFn): RouteBuilder<Data> {
-    this.getI18NMessagesFn = fn;
+  public getPermalink(fn: GetPermalinkFn): RouteBuilder<Data> {
+    this.getPermalinkFn = fn;
     return this;
   }
 
-  public getPermalink(fn: GetPermalinkFn): RouteBuilder<Data> {
-    this.getPermalinkFn = fn;
+  public getTranslations(fn: GetTranslationsFn): RouteBuilder<Data> {
+    this.getTranslationsFn = fn;
     return this;
   }
 

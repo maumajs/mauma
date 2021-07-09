@@ -5,7 +5,7 @@ import { access, stat } from 'fs/promises';
 import nunjucks from 'nunjucks';
 
 import { GetDataFn, GetRouteInstancesFn, RenderFn, RouteBuilder } from './route-builder';
-import { MaumaI18NConfig, MaumaI18NStrategy } from '../public/types';
+import { MaumaI18NConfig, MaumaI18NStrategy, MaumaTranslations } from '../public/types';
 
 export type RoutePermalink = string | Record<string, string> | ((instance: RouteInstance) => string);
 export type RouteParams = Record<string, string | string[]>;
@@ -27,6 +27,7 @@ export interface Route extends RouteBase {
   readonly getInstances: GetRouteInstancesFn;
   readonly getData: GetDataFn;
   readonly render: RenderFn;
+  readonly translations: Record<string, MaumaTranslations>;
 }
 
 export interface RouteInstance<Data = any> {
@@ -157,6 +158,7 @@ export async function getRoutes(routesDir: string, viewsDir: string, nunjucks: n
     const getData: GetDataFn = routeConfig.getData ?? getDataDefault;
     const render: RenderFn = routeConfig.render ?? renderDefault(nunjucks);
     const permalink = routeConfig.getPermalink ? await routeConfig.getPermalink() : routeBase.internalURL;
+    const translations = routeConfig.getTranslations ? await routeConfig.getTranslations() : {};
 
     if (routeBase.isDynamic && !routeConfig.getInstances) {
       throw new Error(`Route "${routeBase.name}" is dynamic but it's missing "getInstances()"`);
@@ -176,6 +178,7 @@ export async function getRoutes(routesDir: string, viewsDir: string, nunjucks: n
       getInstances,
       getData,
       render,
+      translations,
     });
   }
 

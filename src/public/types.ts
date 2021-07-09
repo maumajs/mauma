@@ -8,10 +8,15 @@ export interface MaumaLocale {
   [key: string]: any; // Allow extra properties
 }
 
+export interface MaumaTranslations {
+  [key: string]: string; // | MaumaTranslations;
+}
+
 export interface MaumaI18NConfig {
   locales: MaumaLocale[];
   defaultLocale: string;
   strategy: MaumaI18NStrategy;
+  translations?: Record<string, MaumaTranslations>;
 }
 
 export interface MaumaConfig {

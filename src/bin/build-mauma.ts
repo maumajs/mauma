@@ -36,6 +36,29 @@ interface NunjucksThis {
   // Configure Nunjucks
   nunjucksEnv.addGlobal('config', config);
 
+  nunjucksEnv.addFilter('translate', function (this: NunjucksThis, key: string, replacements: Record<string, any>): string {
+    const { config, route, locale } = this.ctx;
+    let translation = key;
+
+    if (locale) {
+      if (config.i18n.translations) {
+        if (key in config.i18n.translations[locale]) {
+          translation = config.i18n.translations[locale][key];
+        }
+      }
+
+      if (key in route.translations[locale]) {
+        translation = route.translations[locale][key];
+      }
+    }
+
+    Object.entries(replacements ?? {}).forEach(([key, value]) => {
+      translation = translation.replace(`{{${key}}}`, value);
+    });
+
+    return translation;
+  });
+
   nunjucksEnv.addGlobal('haslocale', function (this: NunjucksThis, locale: string): boolean {
     const { instance, route } = this.ctx;
 
