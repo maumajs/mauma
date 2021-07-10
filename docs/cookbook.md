@@ -18,7 +18,7 @@
   - How to translate URLs
   - How to add translations (messages)
     - How to use varibles in translations `{{var}}`
-    - Explain nested translations
+    - Explain nested translations `foo.bar.baz`
   - How to load translations from a YAML file
 
 ---

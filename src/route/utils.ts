@@ -5,10 +5,11 @@ import { access, stat } from 'fs/promises';
 import nunjucks from 'nunjucks';
 
 import { GetDataFn, GetRouteInstancesFn, RenderFn, RouteBuilder } from './route-builder';
-import { MaumaI18NConfig, MaumaI18NStrategy, MaumaTranslations } from '../public/types';
+import { MaumaI18NConfig, MaumaI18NStrategy } from '../public/types';
 
 export type RoutePermalink = string | Record<string, string> | ((instance: RouteInstance) => string);
 export type RouteParams = Record<string, string | string[]>;
+export type RouteInstanceI18nMap = Map<string, Map<string, RouteInstance>>;
 
 export interface RouteBase {
   readonly name: string;
@@ -22,7 +23,7 @@ export interface RouteBase {
 export interface Route extends RouteBase {
   readonly template: string;
   readonly i18nEnabled: boolean;
-  readonly i18nMap: Map<string, Map<string, RouteInstance>>;
+  readonly i18nMap: RouteInstanceI18nMap;
   readonly permalink: RoutePermalink;
   readonly getInstances: GetRouteInstancesFn;
   readonly getData: GetDataFn;
@@ -152,7 +153,7 @@ export async function getRoutes(routesDir: string, viewsDir: string, nunjucks: n
 
     const template = `${join(viewsDir, 'routes', routeBase.name)}.njk`;
     const i18nEnabled = routeConfig.i18nEnabled;
-    const i18nMap = new Map<string, Map<string, RouteInstance>>();
+    const i18nMap: RouteInstanceI18nMap = new Map();
     const getInstances: GetRouteInstancesFn = routeConfig.getInstances ?? getInstancesDefault;
     const getData: GetDataFn = routeConfig.getData ?? getDataDefault;
     const render: RenderFn = routeConfig.render ?? renderDefault(nunjucks);

@@ -6,7 +6,7 @@ import del from 'del';
 
 import { MaumaConfigFn } from '../public/types';
 import { getOutputFile, getRoutes, Route, validateRouteEntries } from '../route/utils';
-import { configureNunjucks } from '../nunjucks/configure';
+import { configureNunjucks } from '../view/configure-nunjucks';
 
 // Register on the fly TS => JS converter
 esbuildRegister();

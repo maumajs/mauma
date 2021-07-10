@@ -1,4 +1,4 @@
-import { MaumaConfig, MaumaTranslations } from '../public/types';
+import { MaumaConfig } from '../public/types';
 import { Route, RouteInstance, RouteParams, RoutePermalink } from './utils';
 
 export interface RenderContext<Data = any> {
