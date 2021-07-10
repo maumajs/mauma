@@ -1,12 +1,12 @@
 import { dirname, join } from 'path';
-import nunjucks, { Environment } from 'nunjucks';
+import nunjucks from 'nunjucks';
 import { mkdir, writeFile } from 'fs/promises';
 const { register: esbuildRegister } = require('esbuild-register/dist/node')
 import del from 'del';
 
 import { MaumaConfigFn } from '../public/types';
-import { getOutputFile, getPermalink, getRoutes, Route, RouteInstance, RouteParams, validateRouteEntries } from '../route/utils';
-import { RenderContext } from '../route/route-builder';
+import { getOutputFile, getRoutes, Route, validateRouteEntries } from '../route/utils';
+import { configureNunjucks } from '../nunjucks/configure';
 
 // Register on the fly TS => JS converter
 esbuildRegister();
@@ -21,79 +21,20 @@ const prebuildDir = join(process.cwd(), '.mauma/build');
 const buildDir = join(process.cwd(), 'build');
 const nunjucksEnv = nunjucks.configure([routesDir, viewsDir], { autoescape: false });
 
-interface NunjucksThis {
-  env: Environment;
-  ctx: RenderContext;
-}
-
 (async () => {
   // Remove build directory
   await del(maumaDir);
+
+  if (typeof configFn !== 'function') {
+    throw new Error(`"config.ts" must return an async function implementing "MaumaConfigFn"`);
+  }
 
   const config = await configFn();
   const routes: Route[] = await getRoutes(routesDir, viewsDir, nunjucksEnv);
   const routeIssues = validateRouteEntries(routes);
 
   // Configure Nunjucks
-  nunjucksEnv.addGlobal('config', config);
-
-  nunjucksEnv.addFilter('translate', function (this: NunjucksThis, key: string, replacements: Record<string, any>): string {
-    const { config, locale } = this.ctx;
-    let translation = key;
-
-    if (locale) {
-      if (config.i18n.translations) {
-        if (key in config.i18n.translations[locale]) {
-          translation = config.i18n.translations[locale][key];
-        }
-      }
-    }
-
-    Object.entries(replacements ?? {}).forEach(([key, value]) => {
-      translation = translation.replace(`{{${key}}}`, value);
-    });
-
-    return translation;
-  });
-
-  nunjucksEnv.addGlobal('haslocale', function (this: NunjucksThis, locale: string): boolean {
-    const { instance, route } = this.ctx;
-
-    if (route.i18nMap.has(instance.key)) {
-      return route.i18nMap.get(instance.key)!.has(locale);
-    }
-
-    return false;
-  });
-
-  nunjucksEnv.addGlobal('localeurl', function (this: NunjucksThis, locale: string): string {
-    const { instance, route } = this.ctx;
-
-    if (route.i18nMap.has(instance.key)) {
-      if (route.i18nMap.get(instance.key)!.has(locale)) {
-        const translation = route.i18nMap.get(instance.key)!.get(locale)!;
-        return getPermalink(config.i18n, route, translation);
-      }
-    }
-
-    return '';
-  });
-
-  nunjucksEnv.addGlobal('url', function (this: NunjucksThis, name: string, params?: RouteParams, locale?: string): string {
-    const route = routes.find(route => name === route.name);
-
-    if (route) {
-      const instance: RouteInstance = {
-        key: route.name,
-        locale: locale ?? this.ctx.locale,
-        params: params ?? {},
-      };
-
-      return getPermalink(config.i18n, route, instance);
-    } else {
-      return '';
-    }
-  });
+  configureNunjucks(nunjucksEnv, config, routes);
 
   if (routeIssues.length > 0) {
     // TODO: Improve reporting
@@ -115,7 +56,7 @@ interface NunjucksThis {
         route.i18nMap.set(instance.key, new Map());
       }
 
-      if (instance.locale) {
+      if (route.i18nMap.has(instance.key) && instance.locale) {
         route.i18nMap.get(instance.key)!.set(instance.locale, instance);
       }
     }

@@ -19,6 +19,7 @@
   - How to add translations (messages)
     - How to use varibles in translations `{{var}}`
     - Explain nested translations
+  - How to load translations from a YAML file
 
 ---
 
