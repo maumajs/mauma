@@ -7,9 +7,9 @@ import nunjucks from 'nunjucks';
 import { GetDataFn, GetRouteInstancesFn, RenderFn, RouteBuilder } from './route-builder';
 import { MaumaI18NConfig, MaumaI18NStrategy } from '../public/types';
 
-export type RoutePermalink = string | Record<string, string> | ((instance: RouteInstance) => string);
+export type RoutePermalink = string | Record<string, string> | ((instance: RouteInstanceBase) => string);
 export type RouteParams = Record<string, string | string[]>;
-export type RouteInstanceI18nMap = Map<string, Map<string, RouteInstance>>;
+export type RouteInstanceI18nMap = Map<string, Map<string, RouteInstanceBase>>;
 
 export interface RouteBase {
   readonly name: string;
@@ -30,7 +30,7 @@ export interface Route extends RouteBase {
   readonly render: RenderFn;
 }
 
-export interface RouteInstance<Data = any> {
+export interface RouteInstanceBase<Data = any> {
   key: string;
   locale?: string;
   params: RouteParams;
@@ -183,7 +183,7 @@ export async function getRoutes(routesDir: string, viewsDir: string, nunjucks: n
   return routes;
 }
 
-export function getPermalink(config: MaumaI18NConfig, route: Route, instance: RouteInstance): string {
+export function getPermalink(config: MaumaI18NConfig, route: Route, instance: RouteInstanceBase): string {
   let out = getPermalinkValue(route.permalink, route.internalURL, instance);
   out = replaceParams(out, instance.params);
   out = route.i18nEnabled ? prependLocale(out, config, instance.locale) : out;
@@ -194,7 +194,7 @@ export function getOutputFile(config: MaumaI18NConfig, route: Route, instance: R
   return appendIndexHTML(getPermalink(config, route, instance));
 }
 
-export function getPermalinkValue(permalink: RoutePermalink, defaultValue: string, instance: RouteInstance): string {
+export function getPermalinkValue(permalink: RoutePermalink, defaultValue: string, instance: RouteInstanceBase): string {
   if (typeof permalink === 'string') {
     return permalink;
   } if (typeof permalink === 'function') {

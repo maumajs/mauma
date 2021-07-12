@@ -11,7 +11,7 @@ import {
   mapFileToRouteBase,
   prependLocale,
   replaceParams,
-  RouteInstance,
+  RouteInstanceBase,
   RoutePermalink,
   validateRouteEntries,
 } from '../../src/route/utils';
@@ -190,7 +190,7 @@ describe('Route Utilities', () => {
   });
 
   describe('getPermalinkValue', () => {
-    const instance: (locale: string) => RouteInstance = (locale) => ({
+    const instance: (locale: string) => RouteInstanceBase = (locale) => ({
       key: '',
       locale,
       params: {},

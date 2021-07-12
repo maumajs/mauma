@@ -1,7 +1,7 @@
 import { Environment } from 'nunjucks';
 import { MaumaConfig } from '../public/types';
 import { RenderContext } from '../route/route-builder';
-import { getPermalink, Route, RouteInstance, RouteParams } from '../route/utils';
+import { getPermalink, Route, RouteInstanceBase, RouteParams } from '../route/utils';
 import { hasLocale, translate } from './globals';
 
 interface NunjucksThis {
@@ -39,7 +39,7 @@ export function configureNunjucks(nunjucks: Environment, config: MaumaConfig, ro
     const route = routes.find(route => name === route.name);
 
     if (route) {
-      const instance: RouteInstance = {
+      const instance: RouteInstanceBase = {
         key: route.name,
         locale: locale ?? this.ctx.locale,
         params: params ?? {},
