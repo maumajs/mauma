@@ -25,6 +25,7 @@ export interface Route extends RouteBase {
   readonly i18nEnabled: boolean;
   readonly i18nMap: RouteInstanceI18nMap;
   readonly permalink: RoutePermalink;
+  readonly priority: number;
   readonly getInstances: GetRouteInstancesFn;
   readonly getData: GetDataFn;
   readonly render: RenderFn;
@@ -158,6 +159,7 @@ export async function getRoutes(routesDir: string, viewsDir: string, nunjucks: n
     const getData: GetDataFn = routeConfig.getData ?? getDataDefault;
     const render: RenderFn = routeConfig.render ?? renderDefault(nunjucks);
     const permalink = routeConfig.getPermalink ? await routeConfig.getPermalink() : routeBase.internalURL;
+    const priority = routeConfig.priority;
 
     if (routeBase.isDynamic && !routeConfig.getInstances) {
       throw new Error(`Route "${routeBase.name}" is dynamic but it's missing "getInstances()"`);
@@ -174,11 +176,15 @@ export async function getRoutes(routesDir: string, viewsDir: string, nunjucks: n
       i18nMap,
       file,
       permalink,
+      priority,
       getInstances,
       getData,
       render,
     });
   }
+
+  // Sort routes by priority ASC
+  routes.sort((a, b) => a.priority - b.priority);
 
   return routes;
 }

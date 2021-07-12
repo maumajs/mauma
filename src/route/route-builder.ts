@@ -25,6 +25,7 @@ export interface RouteConfig<Data = any> {
   getData?: GetDataFn<Data>;
   getInstances?: GetRouteInstancesFn<Data>;
   getPermalink?: GetPermalinkFn;
+  priority: number;
   render?: RenderFn<Data>;
 }
 
@@ -33,6 +34,7 @@ export class RouteBuilder<Data = any> {
   private getDataFn?: GetDataFn<Data>;
   private getInstancesFn?: GetRouteInstancesFn<Data>;
   private getPermalinkFn?: GetPermalinkFn;
+  private priorityValue = 0;
   private renderFn?: RenderFn<Data>;
 
   private getRouteConfig(): RouteConfig<Data> {
@@ -41,6 +43,7 @@ export class RouteBuilder<Data = any> {
       getData: this.getDataFn,
       getInstances: this.getInstancesFn,
       getPermalink: this.getPermalinkFn,
+      priority: this.priorityValue,
       render: this.renderFn,
     };
   }
@@ -67,6 +70,11 @@ export class RouteBuilder<Data = any> {
 
   public render(fn: RenderFn<Data>): RouteBuilder<Data> {
     this.renderFn = fn;
+    return this;
+  }
+
+  public setPriority(priority: number): RouteBuilder<Data> {
+    this.priorityValue = priority;
     return this;
   }
 }
