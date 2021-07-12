@@ -38,6 +38,12 @@ export interface RouteInstanceBase<Data = any> {
   data?: Data;
 }
 
+export interface RouteInstance<Data = any> extends RouteInstanceBase<Data> {
+  data: Data;
+  permalink: string;
+  output: string;
+}
+
 export interface RouteIssue {
   name: string;
   matches: string[];
@@ -196,10 +202,6 @@ export function getPermalink(config: MaumaI18NConfig, route: Route, instance: Ro
   return addTrailingSlash(out);
 }
 
-export function getOutputFile(config: MaumaI18NConfig, route: Route, instance: RouteInstance): string {
-  return appendIndexHTML(getPermalink(config, route, instance));
-}
-
 export function getPermalinkValue(permalink: RoutePermalink, defaultValue: string, instance: RouteInstanceBase): string {
   if (typeof permalink === 'string') {
     return permalink;
@@ -269,6 +271,36 @@ export function renderDefault(nunjucks: nunjucks.Environment): RenderFn {
     }
   };
 };
+
+export async function processInstances(config: MaumaI18NConfig, route: Route, baseInstances: RouteInstanceBase[]): Promise<RouteInstance[]> {
+  const instances: RouteInstance[] = [];
+
+  for (const baseInstance of baseInstances) {
+    // Get instance data
+    // It's important to load ALL the data before rendering
+    const data = await route.getData(baseInstance);
+    const permalink = getPermalink(config, route, baseInstance);
+    const output = appendIndexHTML(permalink);
+
+    // Set related i18n instances map
+    if (!route.i18nMap.has(baseInstance.key)) {
+      route.i18nMap.set(baseInstance.key, new Map());
+    }
+
+    if (route.i18nMap.has(baseInstance.key) && baseInstance.locale) {
+      route.i18nMap.get(baseInstance.key)!.set(baseInstance.locale, baseInstance);
+    }
+
+    instances.push({
+      ...baseInstance,
+      data,
+      permalink,
+      output,
+    });
+  }
+
+  return instances;
+}
 
 export function validateRouteEntries(routes: RouteBase[]): RouteIssue[] {
   const matches = new Map<string, string[]>();
