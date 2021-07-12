@@ -1,2 +1,2 @@
 export * from './public/types';
-export { MaumaRoute } from './route/route-builder';
+export { Route } from './route/route-builder';

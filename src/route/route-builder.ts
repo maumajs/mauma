@@ -1,8 +1,8 @@
-import { MaumaConfig } from '../public/types';
+import { Config } from '../public/types';
 import { Route, RouteInstanceBase, RouteParams, RoutePermalink } from './utils';
 
 export interface RenderContext<Data = any> {
-  config: MaumaConfig;
+  config: Config;
   route: Route;
   instance: RouteInstanceBase;
   locale?: string;
@@ -11,7 +11,7 @@ export interface RenderContext<Data = any> {
 }
 
 export interface GetRouteInstancesFnParams {
-  config: MaumaConfig;
+  config: Config;
   route: Route;
 }
 
@@ -34,7 +34,7 @@ export class RouteBuilder<Data = any> {
   private getDataFn?: GetDataFn<Data>;
   private getInstancesFn?: GetRouteInstancesFn<Data>;
   private getPermalinkFn?: GetPermalinkFn;
-  private priorityValue = 0;
+  private priority = 0;
   private renderFn?: RenderFn<Data>;
 
   private getRouteConfig(): RouteConfig<Data> {
@@ -43,12 +43,12 @@ export class RouteBuilder<Data = any> {
       getData: this.getDataFn,
       getInstances: this.getInstancesFn,
       getPermalink: this.getPermalinkFn,
-      priority: this.priorityValue,
+      priority: this.priority,
       render: this.renderFn,
     };
   }
 
-  public disableI18N(): RouteBuilder<Data> {
+  public disableI18n(): RouteBuilder<Data> {
     this.i18nEnabled = false;
     return this;
   }
@@ -74,11 +74,11 @@ export class RouteBuilder<Data = any> {
   }
 
   public setPriority(priority: number): RouteBuilder<Data> {
-    this.priorityValue = priority;
+    this.priority = priority;
     return this;
   }
 }
 
-export function MaumaRoute<Data = any>(): RouteBuilder<Data> {
+export function Route<Data = any>(): RouteBuilder<Data> {
   return new RouteBuilder<Data>();
 }

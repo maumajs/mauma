@@ -1,5 +1,5 @@
 import { Environment } from 'nunjucks';
-import { MaumaConfig } from '../public/types';
+import { Config } from '../public/types';
 import { RenderContext } from '../route/route-builder';
 import { getPermalink, Route, RouteInstanceBase, RouteParams } from '../route/utils';
 import { hasLocale, translate } from './globals';
@@ -9,7 +9,7 @@ interface NunjucksThis {
   ctx: RenderContext;
 }
 
-export function configureNunjucks(nunjucks: Environment, config: MaumaConfig, routes: Route[]): void {
+export function configureNunjucks(nunjucks: Environment, config: Config, routes: Route[]): void {
   nunjucks.addGlobal('config', config);
 
   nunjucks.addFilter('translate', function (this: NunjucksThis, key: string, replacements: Record<string, any>): string {

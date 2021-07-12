@@ -1,4 +1,4 @@
-import { MaumaTranslations, MaumaTranslationValues } from '../public/types';
+import { LocaleTranslations, Translations } from '../public/types';
 import { RouteInstanceI18nMap } from '../route/utils';
 
 export function hasLocale(i18nMap: RouteInstanceI18nMap, key: string, locale: string): boolean {
@@ -9,7 +9,7 @@ export function hasLocale(i18nMap: RouteInstanceI18nMap, key: string, locale: st
   return false;
 }
 
-export function getTranslation(key: string, translations: MaumaTranslationValues): string {
+export function getTranslation(key: string, translations: Translations): string {
   const isLeaf = !key.includes('.');
 
   if (isLeaf) {
@@ -22,14 +22,14 @@ export function getTranslation(key: string, translations: MaumaTranslationValues
     const [first, ...rest] = key.split('.');
 
     if (first in translations && typeof translations[first] === 'object') {
-      return getTranslation(rest.join('.'), translations[first] as MaumaTranslationValues);
+      return getTranslation(rest.join('.'), translations[first] as Translations);
     }
 
     throw new Error(`"${first}" not present or translation value is "string"`);
   }
 }
 
-export function translate(key: string, replacements: Record<string, any>, translations?: MaumaTranslations, locale?: string): string {
+export function translate(key: string, replacements: Record<string, any>, translations?: LocaleTranslations, locale?: string): string {
   if (locale && translations) {
     try {
       let translation = getTranslation(key, translations[locale]);

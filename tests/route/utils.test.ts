@@ -1,5 +1,5 @@
 import { join } from 'path';
-import { MaumaI18NConfig, MaumaI18NStrategy } from '../../src/public/types';
+import { I18nConfig, I18nStrategy } from '../../src/public/types';
 import {
   addTrailingSlash,
   appendIndexHTML,
@@ -241,10 +241,10 @@ describe('Route Utilities', () => {
 
   describe('prependLocale', () => {
     describe('Prefix', () => {
-      const config: MaumaI18NConfig = {
+      const config: I18nConfig = {
         defaultLocale: 'en',
         locales: [{ code: 'en' }, { code: 'es' }],
-        strategy: MaumaI18NStrategy.Prefix,
+        strategy: I18nStrategy.Prefix,
       };
 
       it(`should prefix always`, () => {
@@ -258,10 +258,10 @@ describe('Route Utilities', () => {
     });
 
     describe('PrefixExceptDefault', () => {
-      const config: MaumaI18NConfig = {
+      const config: I18nConfig = {
         defaultLocale: 'en',
         locales: [{ code: 'en' }, { code: 'es' }],
-        strategy: MaumaI18NStrategy.PrefixExceptDefault,
+        strategy: I18nStrategy.PrefixExceptDefault,
       };
 
       it(`should prefix only non default locales`, () => {

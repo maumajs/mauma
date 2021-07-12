@@ -5,7 +5,7 @@ import { access, stat } from 'fs/promises';
 import nunjucks from 'nunjucks';
 
 import { GetDataFn, GetRouteInstancesFn, RenderFn, RouteBuilder } from './route-builder';
-import { MaumaI18NConfig, MaumaI18NStrategy } from '../public/types';
+import { I18nConfig, I18nStrategy } from '../public/types';
 
 export type RoutePermalink = string | Record<string, string> | ((instance: RouteInstanceBase) => string);
 export type RouteParams = Record<string, string | string[]>;
@@ -195,7 +195,7 @@ export async function getRoutes(routesDir: string, viewsDir: string, nunjucks: n
   return routes;
 }
 
-export function getPermalink(config: MaumaI18NConfig, route: Route, instance: RouteInstanceBase): string {
+export function getPermalink(config: I18nConfig, route: Route, instance: RouteInstanceBase): string {
   let out = getPermalinkValue(route.permalink, route.internalURL, instance);
   out = replaceParams(out, instance.params);
   out = route.i18nEnabled ? prependLocale(out, config, instance.locale) : out;
@@ -238,8 +238,8 @@ export function replaceParams(url: string, params: RouteParams): string {
 }
 
 // Prefix locale for i18n routes
-export function prependLocale(url: string, config: MaumaI18NConfig, locale?: string): string {
-  if (!!locale && (config.strategy === MaumaI18NStrategy.Prefix || locale !== config.defaultLocale)) {
+export function prependLocale(url: string, config: I18nConfig, locale?: string): string {
+  if (!!locale && (config.strategy === I18nStrategy.Prefix || locale !== config.defaultLocale)) {
     return `/${locale}${url}`;
   } else {
     return url;
@@ -272,7 +272,7 @@ export function renderDefault(nunjucks: nunjucks.Environment): RenderFn {
   };
 };
 
-export async function processInstances(config: MaumaI18NConfig, route: Route, baseInstances: RouteInstanceBase[]): Promise<RouteInstance[]> {
+export async function processInstances(config: I18nConfig, route: Route, baseInstances: RouteInstanceBase[]): Promise<RouteInstance[]> {
   const instances: RouteInstance[] = [];
 
   for (const baseInstance of baseInstances) {

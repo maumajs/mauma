@@ -1,31 +1,31 @@
-export enum MaumaI18NStrategy {
+export enum I18nStrategy {
   Prefix = 'prefix',
   PrefixExceptDefault = 'prefix_except_default',
 }
 
-export interface MaumaLocale {
+export interface Locale {
   code: string;
   [key: string]: any; // Allow extra properties
 }
 
-export interface MaumaTranslationValues {
-  [key: string]: string | MaumaTranslationValues;
+export interface Translations {
+  [key: string]: string | Translations;
 }
 
-export type MaumaConfigFn = () => Promise<MaumaConfig>;
-export type MaumaTranslations = Record<string, MaumaTranslationValues>;
+export type ConfigFn = () => Promise<Config>;
+export type LocaleTranslations = Record<string, Translations>;
 
-export interface MaumaI18NConfig {
-  locales: MaumaLocale[];
+export interface I18nConfig {
+  locales: Locale[];
   defaultLocale: string;
-  strategy: MaumaI18NStrategy;
-  translations?: MaumaTranslations;
+  strategy: I18nStrategy;
+  translations?: LocaleTranslations;
 }
 
-export interface MaumaConfig {
+export interface Config {
   // dir?: {
   //   routes?: string;
   //   views?: string;
   // };
-  i18n: MaumaI18NConfig;
+  i18n: I18nConfig;
 }

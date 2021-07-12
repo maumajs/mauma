@@ -1,4 +1,4 @@
-import { MaumaTranslations } from 'index';
+import { LocaleTranslations } from 'index';
 import { translate } from '../../src/view/globals';
 
 describe('View Globals', () => {
@@ -6,7 +6,7 @@ describe('View Globals', () => {
   });
 
   describe('translate', () => {
-    const translations: MaumaTranslations = {
+    const translations: LocaleTranslations = {
       en: {
         foo: 'bar',
         variable: '{{var}}',
