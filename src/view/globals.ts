@@ -30,6 +30,16 @@ export function getTranslation(key: string, translations: Translations): string 
 }
 
 export function translate(key: string, replacements: Record<string, any>, translations?: LocaleTranslations, locale?: string): string {
+  const CUT_REGEX = /:\d$/;
+  let cutIdx;
+
+  // If the key has cut index, e.g. `foo:0`
+  // Get `cutIdx` and remove that part (`foo:0` => `foo`)
+  if (CUT_REGEX.test(key)) {
+    cutIdx = Number(key.split(':').pop()!.trim());
+    key = key.replace(CUT_REGEX, '');
+  }
+
   if (locale && translations) {
     try {
       let translation = getTranslation(key, translations[locale]);
@@ -37,6 +47,17 @@ export function translate(key: string, replacements: Record<string, any>, transl
       Object.entries(replacements).forEach(([key, value]) => {
         translation = translation.replace(`{{${key}}}`, value);
       });
+
+      // If cut index is defined, TRY to return the desired part
+      if (typeof cutIdx !== 'undefined') {
+        const cuts = translation.split('|');
+
+        if (cuts[cutIdx]) {
+          return cuts[cutIdx];
+        } else {
+          return key;
+        }
+      }
 
       return translation;
     } catch { }

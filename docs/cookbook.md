@@ -19,6 +19,7 @@
   - How to add translations (messages)
     - How to use varibles in translations `{{var}}`
     - Explain nested translations `foo.bar.baz`
+    - Explain message cutting, e.g.: `'foo:0'|translate`, where `foo` is: `Click |here|`
   - How to load translations from a YAML file
 
 ---

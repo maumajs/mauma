@@ -10,6 +10,7 @@ describe('View Globals', () => {
       en: {
         foo: 'bar',
         variable: '{{var}}',
+        cut: 'foo|bar|baz',
         bar: {
           baz: {
             foo: '42',
@@ -45,6 +46,15 @@ describe('View Globals', () => {
     it(`should replace variables (eg. {{var}})`, () => {
       expect(translate('variable', { var: 42 }, translations, 'en')).toBe('42');
       expect(translate('variable', { foo: 1337 }, translations, 'en')).toBe('{{var}}');
+    });
+
+    it(`should return part of the translation when using "cut" syntax`, () => {
+      expect(translate('cut:0', {}, translations, 'en')).toBe('foo');
+      expect(translate('cut:1', {}, translations, 'en')).toBe('bar');
+      expect(translate('cut:2', {}, translations, 'en')).toBe('baz');
+
+      // Cut "3" doesn't exist, return "key"
+      expect(translate('cut:3', {}, translations, 'en')).toBe('cut');
     });
   });
 });
