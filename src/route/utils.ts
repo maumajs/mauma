@@ -12,8 +12,8 @@ import {
   GetDataFn,
   GetRouteInstancesFn,
   RenderFn,
-  RouteCfgBase,
-  RouteInstanceBase,
+  RouteBaseConfig,
+  RouteInstanceConfig,
   RouteIssue,
   RouteParams,
   RoutePermalink,
@@ -108,7 +108,7 @@ export function getInternalURLRegexStr(internalURL: string): string {
   return `^${regex}$`;
 }
 
-export function mapFileToRouteBase(file: string): RouteCfgBase {
+export function mapFileToRouteBase(file: string): RouteBaseConfig {
   const internalURL = getRouteURL(file);
   const regex = getInternalURLRegex(internalURL);
   const name = getRouteName(file);
@@ -141,7 +141,7 @@ export async function getRoutes(config: Config, nunjucks: nunjucks.Environment):
     const file = fileFullPath.replace(config.dir.routes, '');
     const routeFullPath = join(config.dir.routes, file);
     const routeBuilder: RouteBuilder = require(routeFullPath).default;
-    const routeConfig = routeBuilder['getRouteConfig']();
+    const routeConfig = routeBuilder['getConfig']();
     const routeBase = mapFileToRouteBase(file);
 
     const template = `${join(config.dir.views, 'routes', routeBase.name)}.njk`;
@@ -184,14 +184,14 @@ export async function getRoutes(config: Config, nunjucks: nunjucks.Environment):
   return new RouteCollection(routes);
 }
 
-export function getPermalink(config: I18nConfig, route: Route, instance: RouteInstanceBase): string {
+export function getPermalink(config: I18nConfig, route: Route, instance: RouteInstanceConfig): string {
   let out = getPermalinkValue(route.permalink, route.internalURL, instance);
   out = replaceParams(out, instance.params);
   out = route.i18nEnabled ? prependLocale(out, config, instance.locale) : out;
   return addTrailingSlash(out);
 }
 
-export function getPermalinkValue(permalink: RoutePermalink, defaultValue: string, instance: RouteInstanceBase): string {
+export function getPermalinkValue(permalink: RoutePermalink, defaultValue: string, instance: RouteInstanceConfig): string {
   if (typeof permalink === 'string') {
     return permalink;
   } if (typeof permalink === 'function') {

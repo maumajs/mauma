@@ -37,7 +37,6 @@ export class Route implements Iterable<RouteInstance> {
 
   private async loadInstances(): Promise<void> {
     const baseInstances = await this.getInstancesFn({ config: this.config, route: this, routes: this.routes });
-    // this.instances = await processInstances(this.config.i18n, this, instances);
 
     for (const baseInstance of baseInstances) {
       // Get instance data
@@ -45,24 +44,25 @@ export class Route implements Iterable<RouteInstance> {
       const data = await this.getDataFn(baseInstance);
       const permalink = getPermalink(this.config.i18n, this, baseInstance);
       const output = appendIndexHTML(permalink);
-
-      // Set related i18n instances map
-      if (!this.i18nMap.has(baseInstance.key)) {
-        this.i18nMap.set(baseInstance.key, new Map());
-      }
-
-      if (this.i18nMap.has(baseInstance.key) && baseInstance.locale) {
-        this.i18nMap.get(baseInstance.key)!.set(baseInstance.locale, baseInstance);
-      }
-
-      this.instances.push(new RouteInstance(
+      const instance = new RouteInstance(
         baseInstance.key,
         baseInstance.locale,
         baseInstance.params,
         data,
         permalink,
         output,
-      ));
+      );
+
+      // Set related i18n instances map
+      if (!this.i18nMap.has(instance.key)) {
+        this.i18nMap.set(instance.key, new Map());
+      }
+
+      if (this.i18nMap.has(instance.key) && instance.locale) {
+        this.i18nMap.get(instance.key)!.set(instance.locale, instance);
+      }
+
+      this.instances.push(instance);
     }
   }
 

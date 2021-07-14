@@ -1,4 +1,4 @@
-import { GetDataFn, GetPermalinkFn, GetRouteInstancesFn, RenderFn, RouteConfig } from './types';
+import { GetDataFn, GetPermalinkFn, GetRouteInstancesFn, RenderFn, RouteBuilderConfig } from './types';
 
 export class RouteBuilder<Data = any> {
   private i18nEnabled = true;
@@ -8,7 +8,7 @@ export class RouteBuilder<Data = any> {
   private priority = 0;
   private renderFn?: RenderFn<Data>;
 
-  private getRouteConfig(): RouteConfig<Data> {
+  private getConfig(): RouteBuilderConfig<Data> {
     return {
       i18nEnabled: this.i18nEnabled,
       getData: this.getDataFn,

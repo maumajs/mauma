@@ -3,7 +3,7 @@ import { RouteCollection } from '../route/route-collection';
 import { Config } from '../public/types';
 import { getPermalink } from '../route/utils';
 import { hasLocale, translate } from './globals';
-import { RenderContext, RouteInstanceBase, RouteParams } from '../route/types';
+import { RenderContext, RouteInstanceConfig, RouteParams } from '../route/types';
 
 interface NunjucksThis {
   env: Environment;
@@ -40,7 +40,7 @@ export function configureNunjucks(nunjucks: Environment, config: Config, routes:
     const route = routes.getByName(name);
 
     if (route) {
-      const instance: RouteInstanceBase = {
+      const instance: RouteInstanceConfig = {
         key: route.name,
         locale: locale ?? this.ctx.locale,
         params: params ?? {},
