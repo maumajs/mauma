@@ -36,18 +36,18 @@ export class Route implements Iterable<RouteInstance> {
   }
 
   private async loadInstances(): Promise<void> {
-    const baseInstances = await this.getInstancesFn({ config: this.config, route: this, routes: this.routes });
+    const instancesCfg = await this.getInstancesFn({ config: this.config, route: this, routes: this.routes });
 
-    for (const baseInstance of baseInstances) {
+    for (const instanceCfg of instancesCfg) {
       // Get instance data
       // It's important to load ALL the data before rendering
-      const data = await this.getDataFn(baseInstance);
-      const permalink = getPermalink(this.config.i18n, this, baseInstance);
+      const data = await this.getDataFn(instanceCfg);
+      const permalink = getPermalink(this.config.i18n, this, instanceCfg);
       const output = appendIndexHTML(permalink);
       const instance = new RouteInstance(
-        baseInstance.key,
-        baseInstance.locale,
-        baseInstance.params,
+        instanceCfg.key,
+        instanceCfg.locale,
+        instanceCfg.params,
         data,
         permalink,
         output,
