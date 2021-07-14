@@ -12,7 +12,7 @@ export interface Translations {
   [key: string]: string | Translations;
 }
 
-export type ConfigFn = () => Promise<Config>;
+export type ConfigFn = () => Promise<UserConfig>;
 export type LocaleTranslations = Record<string, Translations>;
 
 export interface I18nConfig {
@@ -22,10 +22,19 @@ export interface I18nConfig {
   translations?: LocaleTranslations;
 }
 
-export interface Config {
-  // dir?: {
-  //   routes?: string;
-  //   views?: string;
-  // };
+export interface DirsConfig {
+  build: string;
+  client: string;
+  routes: string;
+  scss: string;
+  views: string;
+}
+
+export interface UserConfig {
+  dir?: Partial<DirsConfig>;
   i18n: I18nConfig;
+}
+
+export interface Config extends UserConfig {
+  dir: DirsConfig;
 }

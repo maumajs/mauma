@@ -1,15 +1,16 @@
 import { Environment } from 'nunjucks';
+import { RouteCollection } from '../route/route-collection';
 import { Config } from '../public/types';
-import { RenderContext } from '../route/route-builder';
-import { getPermalink, Route, RouteInstanceBase, RouteParams } from '../route/utils';
+import { getPermalink } from '../route/utils';
 import { hasLocale, translate } from './globals';
+import { RenderContext, RouteInstanceBase, RouteParams } from '../route/types';
 
 interface NunjucksThis {
   env: Environment;
   ctx: RenderContext;
 }
 
-export function configureNunjucks(nunjucks: Environment, config: Config, routes: Route[]): void {
+export function configureNunjucks(nunjucks: Environment, config: Config, routes: RouteCollection): void {
   nunjucks.addGlobal('config', config);
 
   nunjucks.addFilter('translate', function (this: NunjucksThis, key: string, replacements: Record<string, any>): string {
@@ -36,7 +37,7 @@ export function configureNunjucks(nunjucks: Environment, config: Config, routes:
   });
 
   nunjucks.addGlobal('url', function (this: NunjucksThis, name: string, params?: RouteParams, locale?: string): string {
-    const route = routes.find(route => name === route.name);
+    const route = routes.getByName(name);
 
     if (route) {
       const instance: RouteInstanceBase = {

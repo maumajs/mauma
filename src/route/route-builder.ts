@@ -1,33 +1,4 @@
-import { Config } from '../public/types';
-import { Route, RouteInstanceBase, RouteParams, RoutePermalink } from './utils';
-
-export interface RenderContext<Data = any> {
-  config: Config;
-  route: Route;
-  instance: RouteInstanceBase;
-  locale?: string;
-  params: RouteParams,
-  data?: Data;
-}
-
-export interface GetRouteInstancesFnParams {
-  config: Config;
-  route: Route;
-}
-
-export type GetDataFn<Data = any> = (instance: RouteInstanceBase<Data>) => Promise<Data>;
-export type GetRouteInstancesFn<Data = any> = (params: GetRouteInstancesFnParams) => Promise<RouteInstanceBase<Data>[]>;
-export type GetPermalinkFn = () => Promise<RoutePermalink>;
-export type RenderFn<Data = any> = (ctx: RenderContext<Data>) => Promise<string>;
-
-export interface RouteConfig<Data = any> {
-  i18nEnabled: boolean;
-  getData?: GetDataFn<Data>;
-  getInstances?: GetRouteInstancesFn<Data>;
-  getPermalink?: GetPermalinkFn;
-  priority: number;
-  render?: RenderFn<Data>;
-}
+import { GetDataFn, GetPermalinkFn, GetRouteInstancesFn, RenderFn, RouteConfig } from './types';
 
 export class RouteBuilder<Data = any> {
   private i18nEnabled = true;

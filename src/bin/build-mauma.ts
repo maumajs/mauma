@@ -4,22 +4,16 @@ import { mkdir, writeFile } from 'fs/promises';
 const { register: esbuildRegister } = require('esbuild-register/dist/node')
 import del from 'del';
 
-import { ConfigFn } from '../public/types';
-import { getRoutes, processInstances, Route, validateRouteEntries } from '../route/utils';
+import { Config, ConfigFn } from '../public/types';
+import { getRoutes, validateRouteEntries } from '../route/utils';
 import { configureNunjucks } from '../view/configure-nunjucks';
 
 // Register on the fly TS => JS converter
 esbuildRegister();
 
 const configFn: ConfigFn = require(`${process.cwd()}/src/config.ts`).default;
-const viewsDir = join(process.cwd(), 'src/views');
-const routesDir = join(process.cwd(), 'src/routes');
-const clientDir = join(process.cwd(), 'src/client');
-const scssDir = join(process.cwd(), 'src/scss');
 const maumaDir = join(process.cwd(), '.mauma');
 const prebuildDir = join(process.cwd(), '.mauma/build');
-const buildDir = join(process.cwd(), 'build');
-const nunjucksEnv = nunjucks.configure([routesDir, viewsDir], { autoescape: false });
 
 (async () => {
   // Remove build directory
@@ -29,8 +23,22 @@ const nunjucksEnv = nunjucks.configure([routesDir, viewsDir], { autoescape: fals
     throw new Error(`"config.ts" must return an async function implementing "ConfigFn"`);
   }
 
-  const config = await configFn();
-  const routes: Route[] = await getRoutes(routesDir, viewsDir, nunjucksEnv);
+  // Create `Config` object
+  const userConfig = await configFn();
+  const config: Config = {
+    dir: {
+      build: userConfig.dir?.build ?? join(process.cwd(), 'build'),
+      client: userConfig.dir?.client ?? join(process.cwd(), 'src/client'),
+      routes: userConfig.dir?.routes ?? join(process.cwd(), 'src/routes'),
+      scss: userConfig.dir?.scss ?? join(process.cwd(), 'src/scss'),
+      views: userConfig.dir?.views ?? join(process.cwd(), 'src/views'),
+    },
+    i18n: userConfig.i18n,
+  };
+
+  // Load routes
+  const nunjucksEnv = nunjucks.configure([config.dir.routes, config.dir.views], { autoescape: false });
+  const routes = await getRoutes(config, nunjucksEnv);
   const routeIssues = validateRouteEntries(routes);
 
   // Configure Nunjucks
@@ -43,18 +51,18 @@ const nunjucksEnv = nunjucks.configure([routesDir, viewsDir], { autoescape: fals
   }
 
   for (const route of routes) {
-    const instancesBase = await route.getInstances({ config, route });
-    const instances = await processInstances(config.i18n, route, instancesBase);
+    await route['loadInstances']();
 
     // Render
-    for (const instance of instances) {
+    for (const instance of route) {
       const content = await route.render({
         config: config,
+        routes: routes,
         route: route,
         instance: instance,
-        data: instance.data,
-        params: instance.params,
         locale: instance.locale,
+        params: instance.params,
+        data: instance.data,
       });
 
       // Save

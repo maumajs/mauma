@@ -4,49 +4,35 @@ import { constants } from 'fs';
 import { access, stat } from 'fs/promises';
 import nunjucks from 'nunjucks';
 
-import { GetDataFn, GetRouteInstancesFn, RenderFn, RouteBuilder } from './route-builder';
-import { I18nConfig, I18nStrategy } from '../public/types';
+import { RouteBuilder } from './route-builder';
+import { Config, I18nConfig, I18nStrategy } from '../public/types';
+import { RouteCollection } from './route-collection';
+import { Route } from './route';
+import {
+  GetDataFn,
+  GetRouteInstancesFn,
+  RenderFn,
+  RouteCfgBase,
+  RouteInstanceBase,
+  RouteIssue,
+  RouteParams,
+  RoutePermalink,
+} from './types';
 
-export type RoutePermalink = string | Record<string, string> | ((instance: RouteInstanceBase) => string);
-export type RouteParams = Record<string, string | string[]>;
-export type RouteInstanceI18nMap = Map<string, Map<string, RouteInstanceBase>>;
+export function makeIterator<T>(arr: T[]): Iterator<T, any, undefined> {
+  let nextIdx = 0;
 
-export interface RouteBase {
-  readonly name: string;
-  readonly file: string;
-  readonly internalURL: string;
-  readonly regex: RegExp;
-  readonly isCatchAll: boolean;
-  readonly isDynamic: boolean;
-}
-
-export interface Route extends RouteBase {
-  readonly template: string;
-  readonly i18nEnabled: boolean;
-  readonly i18nMap: RouteInstanceI18nMap;
-  readonly permalink: RoutePermalink;
-  readonly priority: number;
-  readonly getInstances: GetRouteInstancesFn;
-  readonly getData: GetDataFn;
-  readonly render: RenderFn;
-}
-
-export interface RouteInstanceBase<Data = any> {
-  key: string;
-  locale?: string;
-  params: RouteParams;
-  data?: Data;
-}
-
-export interface RouteInstance<Data = any> extends RouteInstanceBase<Data> {
-  data: Data;
-  permalink: string;
-  output: string;
-}
-
-export interface RouteIssue {
-  name: string;
-  matches: string[];
+  return {
+    next: () => {
+      return nextIdx < arr.length ? {
+        value: arr[nextIdx++],
+        done: false,
+      } : {
+        value: undefined,
+        done: true,
+      };
+    }
+  };
 }
 
 export function appendIndexHTML(path: string): string {
@@ -122,7 +108,7 @@ export function getInternalURLRegexStr(internalURL: string): string {
   return `^${regex}$`;
 }
 
-export function mapFileToRouteBase(file: string): RouteBase {
+export function mapFileToRouteBase(file: string): RouteCfgBase {
   const internalURL = getRouteURL(file);
   const regex = getInternalURLRegex(internalURL);
   const name = getRouteName(file);
@@ -147,20 +133,19 @@ export async function getRouteFiles(dir: string): Promise<string[]> {
   return globby([join(dir, '/**/*.ts')]);
 }
 
-export async function getRoutes(routesDir: string, viewsDir: string, nunjucks: nunjucks.Environment): Promise<Route[]> {
-  const files = await getRouteFiles(routesDir);
+export async function getRoutes(config: Config, nunjucks: nunjucks.Environment): Promise<RouteCollection> {
+  const files = await getRouteFiles(config.dir.routes);
   const routes: Route[] = [];
 
   for (const fileFullPath of files) {
-    const file = fileFullPath.replace(routesDir, '');
-    const routeFullPath = join(routesDir, file);
+    const file = fileFullPath.replace(config.dir.routes, '');
+    const routeFullPath = join(config.dir.routes, file);
     const routeBuilder: RouteBuilder = require(routeFullPath).default;
     const routeConfig = routeBuilder['getRouteConfig']();
     const routeBase = mapFileToRouteBase(file);
 
-    const template = `${join(viewsDir, 'routes', routeBase.name)}.njk`;
+    const template = `${join(config.dir.views, 'routes', routeBase.name)}.njk`;
     const i18nEnabled = routeConfig.i18nEnabled;
-    const i18nMap: RouteInstanceI18nMap = new Map();
     const getInstances: GetRouteInstancesFn = routeConfig.getInstances ?? getInstancesDefault;
     const getData: GetDataFn = routeConfig.getData ?? getDataDefault;
     const render: RenderFn = routeConfig.render ?? renderDefault(nunjucks);
@@ -175,24 +160,28 @@ export async function getRoutes(routesDir: string, viewsDir: string, nunjucks: n
       throw new Error(`Route "${routeBase.name}" has i18n disabled, but "getPermalink()" returns an object. Return a string instead.`);
     }
 
-    routes.push({
-      ...routeBase,
+    routes.push(new Route(
+      routeBase.name,
+      routeBase.file,
+      routeBase.internalURL,
+      routeBase.regex,
+      routeBase.isCatchAll,
+      routeBase.isDynamic,
       template,
       i18nEnabled,
-      i18nMap,
-      file,
       permalink,
       priority,
+      config,
       getInstances,
       getData,
       render,
-    });
+    ));
   }
 
   // Sort routes by priority ASC
   routes.sort((a, b) => a.priority - b.priority);
 
-  return routes;
+  return new RouteCollection(routes);
 }
 
 export function getPermalink(config: I18nConfig, route: Route, instance: RouteInstanceBase): string {
@@ -272,46 +261,16 @@ export function renderDefault(nunjucks: nunjucks.Environment): RenderFn {
   };
 };
 
-export async function processInstances(config: I18nConfig, route: Route, baseInstances: RouteInstanceBase[]): Promise<RouteInstance[]> {
-  const instances: RouteInstance[] = [];
-
-  for (const baseInstance of baseInstances) {
-    // Get instance data
-    // It's important to load ALL the data before rendering
-    const data = await route.getData(baseInstance);
-    const permalink = getPermalink(config, route, baseInstance);
-    const output = appendIndexHTML(permalink);
-
-    // Set related i18n instances map
-    if (!route.i18nMap.has(baseInstance.key)) {
-      route.i18nMap.set(baseInstance.key, new Map());
-    }
-
-    if (route.i18nMap.has(baseInstance.key) && baseInstance.locale) {
-      route.i18nMap.get(baseInstance.key)!.set(baseInstance.locale, baseInstance);
-    }
-
-    instances.push({
-      ...baseInstance,
-      data,
-      permalink,
-      output,
-    });
-  }
-
-  return instances;
-}
-
-export function validateRouteEntries(routes: RouteBase[]): RouteIssue[] {
+export function validateRouteEntries(routes: RouteCollection): RouteIssue[] {
   const matches = new Map<string, string[]>();
 
-  routes.forEach(({ name, internalURL }) => {
-    routes.forEach(route => {
+  for (const { name, internalURL } of routes) {
+    for (const route of routes) {
       if (route.regex.test(internalURL)) {
         matches.set(name, (matches.get(name) ?? []).concat(route.name));
       }
-    });
-  });
+    }
+  }
 
   return Array.from(matches.entries())
     .filter(([, matches]) => matches.length > 1)

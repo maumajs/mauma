@@ -1,5 +1,5 @@
+import { RouteInstanceI18nMap } from '../route/types';
 import { LocaleTranslations, Translations } from '../public/types';
-import { RouteInstanceI18nMap } from '../route/utils';
 
 export function hasLocale(i18nMap: RouteInstanceI18nMap, key: string, locale: string): boolean {
   if (i18nMap.has(key)) {
