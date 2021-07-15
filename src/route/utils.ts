@@ -184,13 +184,6 @@ export async function getRoutes(config: Config, nunjucks: nunjucks.Environment):
   return new RouteCollection(routes);
 }
 
-export function getPermalink(config: I18nConfig, route: Route, instance: RouteInstanceConfig): string {
-  let out = getPermalinkValue(route.permalink, route.internalURL, instance);
-  out = replaceParams(out, instance.params);
-  out = route.i18nEnabled ? prependLocale(out, config, instance.locale) : out;
-  return addTrailingSlash(out);
-}
-
 export function getPermalinkValue(permalink: RoutePermalink, defaultValue: string, instance: RouteInstanceConfig): string {
   if (typeof permalink === 'string') {
     return permalink;

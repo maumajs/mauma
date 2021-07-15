@@ -1,7 +1,6 @@
 import { Environment } from 'nunjucks';
 import { RouteCollection } from '../route/route-collection';
 import { Config } from '../public/types';
-import { getPermalink } from '../route/utils';
 import { hasLocale, translate } from './globals';
 import { RenderContext, RouteInstanceConfig, RouteParams } from '../route/types';
 
@@ -29,7 +28,7 @@ export function configureNunjucks(nunjucks: Environment, config: Config, routes:
     if (route.i18nMap.has(instance.key)) {
       if (route.i18nMap.get(instance.key)!.has(locale)) {
         const translation = route.i18nMap.get(instance.key)!.get(locale)!;
-        return getPermalink(config.i18n, route, translation);
+        return route.getPermalink(translation);
       }
     }
 
@@ -40,13 +39,11 @@ export function configureNunjucks(nunjucks: Environment, config: Config, routes:
     const route = routes.getByName(name);
 
     if (route) {
-      const instance: RouteInstanceConfig = {
+      return route.getPermalink({
         key: route.name,
         locale: locale ?? this.ctx.locale,
         params: params ?? {},
-      };
-
-      return getPermalink(config.i18n, route, instance);
+      });
     }
 
     return '';

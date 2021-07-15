@@ -1,8 +1,8 @@
-import { Config } from 'public/types';
+import { Config } from '../public/types';
 import { RouteCollection } from './route-collection';
 import { RouteInstance } from './route-instance';
-import { RouteInstanceI18nMap, RoutePermalink, GetRouteInstancesFn, GetDataFn, RenderFn, RenderContext } from './types';
-import { appendIndexHTML, getPermalink, makeIterator } from './utils';
+import { RouteInstanceI18nMap, RoutePermalink, GetRouteInstancesFn, GetDataFn, RenderFn, RenderContext, RouteInstanceConfig } from './types';
+import { addTrailingSlash, appendIndexHTML, getPermalinkValue, makeIterator, prependLocale, replaceParams } from './utils';
 
 export class Route implements Iterable<RouteInstance> {
   public readonly i18nMap: RouteInstanceI18nMap = new Map();
@@ -35,6 +35,13 @@ export class Route implements Iterable<RouteInstance> {
     return this.instances;
   }
 
+  public getPermalink(instance: RouteInstanceConfig): string {
+    let out = getPermalinkValue(this.permalink, this.internalURL, instance);
+    out = replaceParams(out, instance.params);
+    out = this.i18nEnabled ? prependLocale(out, this.config.i18n, instance.locale) : out;
+    return addTrailingSlash(out);
+  }
+
   private async loadInstances(): Promise<void> {
     const instancesCfg = await this.getInstancesFn({ config: this.config, route: this, routes: this.routes });
 
@@ -42,7 +49,7 @@ export class Route implements Iterable<RouteInstance> {
       // Get instance data
       // It's important to load ALL the data before rendering
       const data = await this.getDataFn(instanceCfg);
-      const permalink = getPermalink(this.config.i18n, this, instanceCfg);
+      const permalink = this.getPermalink(instanceCfg);
       const output = appendIndexHTML(permalink);
       const instance = new RouteInstance(
         instanceCfg.key,
