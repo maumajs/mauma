@@ -149,7 +149,8 @@ export async function getRoutes(config: Config, nunjucks: nunjucks.Environment):
     const routeConfig = routeBuilder['getConfig']();
     const routeBase = mapFileToRouteBase(file);
 
-    const template = `${join(config.dir.views, 'routes', routeBase.name)}.njk`;
+    const name = routeConfig.name ?? routeBase.name;
+    const template = `${join(config.dir.views, 'routes', name)}.njk`;
     const i18nEnabled = routeConfig.i18nEnabled;
     const getInstances: GetRouteInstancesFn = routeConfig.getInstances ?? getInstancesDefault;
     const getData: GetDataFn = routeConfig.getData ?? getDataDefault;
@@ -158,15 +159,15 @@ export async function getRoutes(config: Config, nunjucks: nunjucks.Environment):
     const priority = routeConfig.priority;
 
     if (routeBase.isDynamic && !routeConfig.getInstances) {
-      throw new Error(`Route "${routeBase.name}" is dynamic but it's missing "getInstances()"`);
+      throw new Error(`Route "${name}" is dynamic but it's missing "getInstances()"`);
     }
 
     if (!i18nEnabled && !['string', 'function'].includes(typeof permalink)) {
-      throw new Error(`Route "${routeBase.name}" has i18n disabled, but "getPermalink()" returns an object. Return a string instead.`);
+      throw new Error(`Route "${name}" has i18n disabled, but "getPermalink()" returns an object. Return a string instead.`);
     }
 
     routes.push(new Route(
-      routeBase.name,
+      name,
       routeBase.file,
       routeBase.internalURL,
       routeBase.regex,

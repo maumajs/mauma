@@ -2,6 +2,7 @@ import { GetDataFn, GetPermalinkFn, GetRouteInstancesFn, RenderFn, RouteBuilderC
 
 export class RouteBuilder<Data = any> {
   private i18nEnabled = true;
+  private name?: string;
   private getDataFn?: GetDataFn<Data>;
   private getInstancesFn?: GetRouteInstancesFn<Data>;
   private getPermalinkFn?: GetPermalinkFn;
@@ -12,6 +13,7 @@ export class RouteBuilder<Data = any> {
   private getConfig(): RouteBuilderConfig<Data> {
     return {
       i18nEnabled: this.i18nEnabled,
+      name: this.name,
       getData: this.getDataFn,
       getInstances: this.getInstancesFn,
       getPermalink: this.getPermalinkFn,
@@ -43,6 +45,11 @@ export class RouteBuilder<Data = any> {
 
   public render(fn: RenderFn<Data>): RouteBuilder<Data> {
     this.renderFn = fn;
+    return this;
+  }
+
+  public setName(name: string): RouteBuilder<Data> {
+    this.name = name;
     return this;
   }
 

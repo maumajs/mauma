@@ -57,6 +57,7 @@ export type RenderFn<Data = any> = (ctx: RenderContext<Data>) => Promise<string>
 
 export interface RouteBuilderConfig<Data = any> {
   i18nEnabled: boolean;
+  name?: string;
   getData?: GetDataFn<Data>;
   getInstances?: GetRouteInstancesFn<Data>;
   getPermalink?: GetPermalinkFn;
