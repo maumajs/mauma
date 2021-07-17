@@ -36,7 +36,7 @@ export function configureNunjucks(nunjucks: Environment, config: Config, routes:
   });
 
   nunjucks.addGlobal('url', function (this: NunjucksThis, name: string, params?: RouteParams, locale?: string): string {
-    const route = routes.getByName(name);
+    const route = routes.get(name);
 
     if (route) {
       return route.getPermalink({

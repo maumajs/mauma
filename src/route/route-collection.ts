@@ -17,7 +17,7 @@ export class RouteCollection implements Iterable<Route> {
     return this.routes;
   }
 
-  public getByName(name: string): Route | undefined {
+  public get(name: string): Route | undefined {
     return this.routes.find(route => name === route.name);
   }
 
