@@ -1,4 +1,5 @@
 import { join } from 'path';
+import { RouteInstanceConfig, RoutePermalink } from '../../src/route/types';
 import { I18nConfig, I18nStrategy } from '../../src/public/types';
 import {
   addTrailingSlash,
@@ -11,8 +12,6 @@ import {
   mapFileToRouteBase,
   prependLocale,
   replaceParams,
-  RouteInstanceBase,
-  RoutePermalink,
   validateRouteEntries,
 } from '../../src/route/utils';
 
@@ -190,7 +189,7 @@ describe('Route Utilities', () => {
   });
 
   describe('getPermalinkValue', () => {
-    const instance: (locale: string) => RouteInstanceBase = (locale) => ({
+    const instance: (locale: string) => RouteInstanceConfig = (locale) => ({
       key: '',
       locale,
       params: {},
@@ -226,16 +225,39 @@ describe('Route Utilities', () => {
 
   describe('replaceParams', () => {
     it(`should replace the parameters`, () => {
-      expect(replaceParams('/', {})).toBe('/');
-      expect(replaceParams('/us/about', {})).toBe('/us/about');
-      expect(replaceParams('/blog/[slug]', { slug: 'lorem-ipsum' })).toBe('/blog/lorem-ipsum');
-      expect(replaceParams('/blog/[...all]', { all: ['foo', '42', 'bar'] })).toBe('/blog/foo/42/bar');
+      expect(replaceParams('/', {}, {})).toBe('/');
+      expect(replaceParams('/us/about', {}, {})).toBe('/us/about/');
+      expect(replaceParams('/blog/[slug]', { slug: 'lorem-ipsum' }, {})).toBe('/blog/lorem-ipsum/');
+      expect(replaceParams('/blog/[...all]', { all: ['foo', '42', 'bar'] }, {})).toBe('/blog/foo/42/bar/');
     });
 
     it(`should throw an error if the param is missing`, () => {
       expect(() => {
-        replaceParams('/blog/[slug]', {});
+        replaceParams('/blog/[slug]', {}, {});
       }).toThrow();
+    });
+
+    it(`should hide params with default values`, () => {
+      // Normal params
+      expect(replaceParams('/blog/[page]', { page: '1' }, { page: '1' })).toBe('/blog/');
+      expect(replaceParams('/blog/[page]', { page: '2' }, { page: '1' })).toBe('/blog/2/');
+      expect(replaceParams('/blog/[category]/[page]', { category: 'foo', page: '1' }, { category: 'foo', page: '1' })).toBe('/blog/');
+      expect(replaceParams('/blog/[category]/[page]', { category: 'foo', page: '2' }, { category: 'foo', page: '1' })).toBe('/blog/foo/2/');
+      expect(replaceParams('/blog/[category]/[page]', { category: 'bar', page: '1' }, { category: 'foo', page: '1' })).toBe('/blog/bar/');
+      expect(replaceParams('/blog/[category]/[page]', { category: 'bar', page: '2' }, { category: 'foo', page: '1' })).toBe('/blog/bar/2/');
+
+      // Spread params
+      expect(replaceParams('/blog/[...all]', { all: ['foo', '1'] }, { all: ['foo', '1'] })).toBe('/blog/');
+      expect(replaceParams('/blog/[...all]', { all: ['foo', '2'] }, { all: ['foo', '1'] })).toBe('/blog/foo/2/');
+      expect(replaceParams('/blog/[...all]', { all: ['bar', '1'] }, { all: ['foo', '1'] })).toBe('/blog/bar/');
+      expect(replaceParams('/blog/[...all]', { all: ['bar', '2'] }, { all: ['foo', '1'] })).toBe('/blog/bar/2/');
+      expect(replaceParams('/blog/[...all]', { all: ['bar', '1', 'test', 'foo'] }, { all: ['foo', '1'] })).toBe('/blog/bar/1/test/foo/');
+
+      // Mixed
+      expect(replaceParams('/blog/[page]/[...all]', { page: '1', all: ['foo', '1'] }, { page: '1', all: ['foo', '1'] })).toBe('/blog/');
+      expect(replaceParams('/blog/[page]/[...all]', { page: '2', all: ['foo', '1'] }, { page: '1', all: ['foo', '1'] })).toBe('/blog/2/');
+      expect(replaceParams('/blog/[page]/[...all]', { page: '2', all: ['bar', '1'] }, { page: '1', all: ['foo', '1'] })).toBe('/blog/2/bar/');
+      expect(replaceParams('/blog/[page]/[...all]', { page: '2', all: ['foo', '2'] }, { page: '1', all: ['foo', '1'] })).toBe('/blog/2/foo/2/');
     });
   });
 

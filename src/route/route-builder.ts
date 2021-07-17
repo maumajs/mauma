@@ -1,10 +1,11 @@
-import { GetDataFn, GetPermalinkFn, GetRouteInstancesFn, RenderFn, RouteBuilderConfig } from './types';
+import { GetDataFn, GetPermalinkFn, GetRouteInstancesFn, RenderFn, RouteBuilderConfig, RouteParams } from './types';
 
 export class RouteBuilder<Data = any> {
   private i18nEnabled = true;
   private getDataFn?: GetDataFn<Data>;
   private getInstancesFn?: GetRouteInstancesFn<Data>;
   private getPermalinkFn?: GetPermalinkFn;
+  private paramDefaults: RouteParams = {};
   private priority = 0;
   private renderFn?: RenderFn<Data>;
 
@@ -14,6 +15,7 @@ export class RouteBuilder<Data = any> {
       getData: this.getDataFn,
       getInstances: this.getInstancesFn,
       getPermalink: this.getPermalinkFn,
+      paramDefaults: this.paramDefaults,
       priority: this.priority,
       render: this.renderFn,
     };
@@ -41,6 +43,11 @@ export class RouteBuilder<Data = any> {
 
   public render(fn: RenderFn<Data>): RouteBuilder<Data> {
     this.renderFn = fn;
+    return this;
+  }
+
+  public setParamDefaults(paramDefaults: RouteParams): RouteBuilder<Data> {
+    this.paramDefaults = paramDefaults;
     return this;
   }
 

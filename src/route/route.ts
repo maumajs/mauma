@@ -1,10 +1,10 @@
 import { Config } from '../public/types';
 import { RouteCollection } from './route-collection';
 import { RouteInstance } from './route-instance';
-import { RouteInstanceI18nMap, RoutePermalink, GetRouteInstancesFn, GetDataFn, RenderFn, RenderContext, RouteInstanceConfig } from './types';
+import { RouteInstanceI18nMap, RoutePermalink, GetRouteInstancesFn, GetDataFn, RenderFn, RenderContext, RouteInstanceConfig, RouteParams, RouteBaseConfig } from './types';
 import { addTrailingSlash, appendIndexHTML, getPermalinkValue, makeIterator, prependLocale, replaceParams } from './utils';
 
-export class Route implements Iterable<RouteInstance> {
+export class Route implements Iterable<RouteInstance>, RouteBaseConfig {
   public readonly i18nMap: RouteInstanceI18nMap = new Map();
 
   private instances: RouteInstance[] = [];
@@ -21,6 +21,7 @@ export class Route implements Iterable<RouteInstance> {
     public readonly i18nEnabled: boolean,
     public readonly permalink: RoutePermalink,
     public readonly priority: number,
+    private readonly paramDefaults: RouteParams,
     private readonly config: Config,
     private readonly getInstancesFn: GetRouteInstancesFn,
     private readonly getDataFn: GetDataFn,
@@ -37,9 +38,8 @@ export class Route implements Iterable<RouteInstance> {
 
   public getPermalink(instance: RouteInstanceConfig): string {
     let out = getPermalinkValue(this.permalink, this.internalURL, instance);
-    out = replaceParams(out, instance.params);
-    out = this.i18nEnabled ? prependLocale(out, this.config.i18n, instance.locale) : out;
-    return addTrailingSlash(out);
+    out = replaceParams(out, instance.params, this.paramDefaults);
+    return this.i18nEnabled ? prependLocale(out, this.config.i18n, instance.locale) : out;
   }
 
   private async loadInstances(): Promise<void> {

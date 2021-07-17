@@ -7,6 +7,12 @@ export type RoutePermalink = string | Record<string, string> | ((instance: Route
 export type RouteParams = Record<string, string | string[]>;
 export type RouteInstanceI18nMap = Map<string, Map<string, RouteInstance>>;
 
+export interface RouteParamConfig {
+  isCatchAll: boolean;
+  name: string;
+  token: string;
+}
+
 export interface RouteBaseConfig {
   readonly name: string;
   readonly file: string;
@@ -54,6 +60,7 @@ export interface RouteBuilderConfig<Data = any> {
   getData?: GetDataFn<Data>;
   getInstances?: GetRouteInstancesFn<Data>;
   getPermalink?: GetPermalinkFn;
+  paramDefaults: RouteParams;
   priority: number;
   render?: RenderFn<Data>;
 }
