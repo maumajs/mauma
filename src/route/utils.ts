@@ -215,6 +215,12 @@ export function replaceParams(url: string, params: RouteParams, defaults: RouteP
   // as soon as a replacement is not the default, change this to `false`
   let canReplaceDefault = true;
 
+  // Initialize with default values in case the user hasn't provided some parameter but is present in defaults
+  params = {
+    ...defaults,
+    ...params,
+  };
+
   urlParams.forEach(({ token, isCatchAll, name }) => {
     if (name in params) {
       // [param] & [...param] are treated the same, we convert everything to arrays

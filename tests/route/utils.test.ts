@@ -237,6 +237,12 @@ describe('Route Utilities', () => {
       }).toThrow();
     });
 
+    it(`should use the default parameters if none is provided`, () => {
+      expect(replaceParams('/blog/[slug]', {}, { slug: 'lorem-ipsum' })).toBe('/blog/');
+      expect(replaceParams('/blog/[year]/[month]', { month: '1' }, { year: '2021', month: '1' })).toBe('/blog/');
+      expect(replaceParams('/blog/[year]/[month]', { month: '2' }, { year: '2021', month: '1' })).toBe('/blog/2021/2/');
+    });
+
     it(`should hide params with default values`, () => {
       // Normal params
       expect(replaceParams('/blog/[page]', { page: '1' }, { page: '1' })).toBe('/blog/');
