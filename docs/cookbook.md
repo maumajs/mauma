@@ -16,6 +16,9 @@
     - `[param]`: regular
     - `[...all]`: Catch-all
     - Default values
+- Nunjucks
+  - Modify via `configureNunjucks`
+  - Add global variables available in all templates
 - i18n
   - How to prefix all locales and create a language selection page in `/`
   - How to create a language switcher (`localeurl`)

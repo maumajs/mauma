@@ -42,6 +42,10 @@ const prebuildDir = join(process.cwd(), '.mauma/build');
   const routeIssues = validateRouteEntries(routes);
 
   // Configure Nunjucks
+  if (userConfig.configureNunjucks) {
+    userConfig.configureNunjucks(nunjucksEnv, config, routes);
+  }
+
   configureNunjucks(nunjucksEnv, config, routes);
 
   if (routeIssues.length > 0) {

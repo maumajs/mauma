@@ -2,7 +2,7 @@ import { Environment } from 'nunjucks';
 import { RouteCollection } from '../route/route-collection';
 import { Config } from '../public/types';
 import { hasLocale, translate } from './globals';
-import { RenderContext, RouteInstanceConfig, RouteParams } from '../route/types';
+import { RenderContext, RouteParams } from '../route/types';
 
 interface NunjucksThis {
   env: Environment;

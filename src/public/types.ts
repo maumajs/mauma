@@ -1,3 +1,6 @@
+import { Environment } from 'nunjucks';
+import { RouteCollection } from 'route/route-collection';
+
 export enum I18nStrategy {
   Prefix = 'prefix',
   PrefixExceptDefault = 'prefix_except_default',
@@ -31,10 +34,11 @@ export interface DirsConfig {
 }
 
 export interface UserConfig {
+  configureNunjucks?(nunjucks: Environment, config: Config, routes: RouteCollection): void;
   dir?: Partial<DirsConfig>;
   i18n: I18nConfig;
 }
 
-export interface Config extends UserConfig {
+export interface Config extends Omit<UserConfig, 'configureNunjucks'> {
   dir: DirsConfig;
 }
