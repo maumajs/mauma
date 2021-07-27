@@ -2,7 +2,7 @@
 
 - General
   - How to link to pages (with our without locale)
-  - How to make a paginated page (blog index)
+  - How to make a paginated page (posts & posts by category)
   - How to add a page without locale
   - How to add a binary route, e.g. generated PNG
   - How to add a route in a random place, /index.ts => /weird/place/index.html

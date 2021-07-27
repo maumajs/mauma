@@ -3,7 +3,7 @@ import { Route } from './route';
 import { RouteCollection } from './route-collection';
 import { RouteInstance } from './route-instance';
 
-export type RoutePermalink = string | Record<string, string> | ((instance: RouteInstanceConfig) => string);
+export type RoutePermalink<Data = any> = string | Record<string, string> | ((instance: RouteInstanceConfig<Data>) => string);
 export type RouteParams = Record<string, string | string[]>;
 export type RouteInstanceI18nMap = Map<string, Map<string, RouteInstance>>;
 
@@ -52,7 +52,7 @@ export interface GetRouteInstancesFnParams {
 
 export type GetDataFn<Data = any> = (instance: RouteInstanceConfig<Data>) => Promise<Data>;
 export type GetRouteInstancesFn<Data = any> = (params: GetRouteInstancesFnParams) => Promise<RouteInstanceConfig<Data>[]>;
-export type GetPermalinkFn = () => Promise<RoutePermalink>;
+export type GetPermalinkFn<Data = any> = () => Promise<RoutePermalink<Data>>;
 export type RenderFn<Data = any> = (ctx: RenderContext<Data>) => Promise<string>;
 
 export interface RouteBuilderConfig<Data = any> {
@@ -60,7 +60,7 @@ export interface RouteBuilderConfig<Data = any> {
   name?: string;
   getData?: GetDataFn<Data>;
   getInstances?: GetRouteInstancesFn<Data>;
-  getPermalink?: GetPermalinkFn;
+  getPermalink?: GetPermalinkFn<Data>;
   paramDefaults: RouteParams;
   priority: number;
   render?: RenderFn<Data>;
