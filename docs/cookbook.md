@@ -3,6 +3,7 @@
 - General
   - How to link to pages (with our without locale)
   - How to make a paginated page (posts & posts by category)
+    - Mention that paginated pages can be non-localized
   - How to add a page without locale
   - How to add a binary route, e.g. generated PNG
   - How to add a route in a random place, /index.ts => /weird/place/index.html
@@ -38,9 +39,9 @@ How to add conditional dash on title:
 <title>
   {% set title %}{% block title %}{% endblock %}{% endset %}
   {% if title %}
-    {{ title }} - Mauma SSG
+    {{ title }} - Mauma SSG Playground
   {% else %}
-    Mauma: Static Site Generator
+    Mauma Static Site Generator Playground
   {% endif %}
 </title>
 ```
@@ -51,7 +52,7 @@ How to add conditional dash on title:
 {% block title %}{% endblock %}
 ```
 
-Gives: `Mauma: Static Site Generator`
+Gives: `Mauma: Static Site Generator Playground`
 
 ```njk
 <!-- about.njk -->
@@ -59,4 +60,4 @@ Gives: `Mauma: Static Site Generator`
 {% block title %}About{% endblock %}
 ```
 
-Gives: `About - Mauma SSG`
+Gives: `About - Mauma SSG Playground`
