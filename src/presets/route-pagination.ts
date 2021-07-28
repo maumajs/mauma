@@ -49,13 +49,20 @@ export class RoutePaginationBuilder<Data = any> {
 
         if (route) {
           const instances = route.getInstances();
-          const locales: (string | undefined)[] = route.i18nEnabled ? config.i18n.locales.map(l => l.code) : [undefined];
+          const locales: (string | undefined)[] = paginationRoute.i18nEnabled ? config.i18n.locales.map(l => l.code) : [undefined];
           const filters: (string | undefined)[] = this.filterParams ? await this.filterParams.values() : [undefined];
 
           for (const locale of locales) {
             // Filter by locale
             const hasLocale = typeof locale === 'string';
-            const localeInstances = instances.filter(i => hasLocale ? i.locale === locale : true);
+            const localeInstances = instances.filter(i => {
+              // Filter only if the pagination route, and the route to be paginated have i18n enabled
+              if (route.i18nEnabled && hasLocale) {
+                return i.locale === locale;
+              }
+
+              return true;
+            });
 
             for (const filter of filters) {
               // Filter by user provided "filter"
@@ -106,10 +113,10 @@ export class RoutePaginationBuilder<Data = any> {
     return this.route['getConfig']();
   }
 
-  // public disableI18n(): RoutePaginationBuilder<Data> {
-  //   this.route.disableI18n();
-  //   return this;
-  // }
+  public disableI18n(): RoutePaginationBuilder<Data> {
+    this.route.disableI18n();
+    return this;
+  }
 
   public setFilter(params: RoutePaginationFilterParams<Data>): RoutePaginationBuilder<Data> {
     this.filterParams = params;
